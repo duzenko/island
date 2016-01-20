@@ -1,0 +1,9 @@
+src/__history/
+*.~dsk
+*.dsk
+*.identcache
+*.local
+binWin32/
+dcuWin32/
+*.dproj
+*.bin
