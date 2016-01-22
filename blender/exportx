@@ -1,0 +1,231 @@
+import bpy
+
+def save(context, filepath):
+    
+    def __WriteMeshSkinWeights(self, Mesh, MeshEnumerator=None):
+        # This contains vertex indices and weights for the vertices that belong
+        # to this bone's group.  Also calculates the bone skin matrix.
+        class _BoneVertexGroup:
+                def __init__(self, BlenderObject, ArmatureObject, BoneName):
+                    self.BoneName = BoneName
+                    self.SafeName = Util.SafeName(ArmatureObject.name) + "_" + \
+                        Util.SafeName(BoneName)
+                    
+                    self.Indices = []
+                    self.Weights = []
+                    
+                    # BoneMatrix transforms mesh vertices into the
+                    # space of the bone.
+                    # Here are the final transformations in order:
+                    #  - Object Space to World Space
+                    #  - World Space to Armature Space
+                    #  - Armature Space to Bone Space
+                    # This way, when BoneMatrix is transformed by the bone's
+                    # Frame matrix, the vertices will be in their final world
+                    # position.
+                    
+                    self.BoneMatrix = ArmatureObject.data.bones[BoneName] \
+                        .matrix_local.inverted()
+                    self.BoneMatrix *= ArmatureObject.matrix_world.inverted()
+                    self.BoneMatrix *= BlenderObject.matrix_world
+                
+                def AddVertex(self, Index, Weight):
+                    self.Indices.append(Index)
+                    self.Weights.append(Weight)
+        
+        # Skin weights work well with vertex reuse per face.  Use a
+        # _OneToOneMeshEnumerator if possible.
+        if MeshEnumerator is None:
+            MeshEnumerator = MeshExportObject._OneToOneMeshEnumerator(Mesh)
+        
+        ArmatureModifierList = [Modifier 
+            for Modifier in self.BlenderObject.modifiers
+            if Modifier.type == 'ARMATURE' and Modifier.show_viewport]
+        
+        if not ArmatureModifierList:
+            return
+        
+        # Although multiple armature objects are gathered, support for
+        # multiple armatures per mesh is not complete
+        ArmatureObjects = [Modifier.object for Modifier in ArmatureModifierList]
+        
+        for ArmatureObject in ArmatureObjects:
+            # Determine the names of the bone vertex groups
+            PoseBoneNames = [Bone.name for Bone in ArmatureObject.pose.bones]
+            VertexGroupNames = [Group.name for Group
+                in self.BlenderObject.vertex_groups]
+            UsedBoneNames = set(PoseBoneNames).intersection(VertexGroupNames)
+            
+            # Create a _BoneVertexGroup for each group name
+            BoneVertexGroups = [_BoneVertexGroup(self.BlenderObject,
+                ArmatureObject, BoneName) for BoneName in UsedBoneNames]
+            
+            # Maps Blender's internal group indexing to our _BoneVertexGroups
+            GroupIndexToBoneVertexGroups = {Group.index : BoneVertexGroup
+                for Group in self.BlenderObject.vertex_groups
+                for BoneVertexGroup in BoneVertexGroups
+                if Group.name == BoneVertexGroup.BoneName}
+            
+            MaximumInfluences = 0
+            
+            for Index, Vertex in enumerate(MeshEnumerator.vertices):
+                VertexWeightTotal = 0.0
+                VertexInfluences = 0
+                
+                # Sum up the weights of groups that correspond
+                # to armature bones.
+                for VertexGroup in Vertex.groups:
+                    BoneVertexGroup = GroupIndexToBoneVertexGroups.get(
+                        VertexGroup.group)
+                    if BoneVertexGroup is not None:
+                        VertexWeightTotal += VertexGroup.weight
+                        VertexInfluences += 1
+                
+                if VertexInfluences > MaximumInfluences:
+                    MaximumInfluences = VertexInfluences
+                
+                # Add the vertex to the bone vertex groups it belongs to,
+                # normalizing each bone's weight.
+                for VertexGroup in Vertex.groups:
+                    BoneVertexGroup = GroupIndexToBoneVertexGroups.get(
+                        VertexGroup.group)
+                    if BoneVertexGroup is not None:
+                        Weight = VertexGroup.weight / VertexWeightTotal
+                        BoneVertexGroup.AddVertex(Index, Weight)
+            
+            self.Exporter.File.Write("XSkinMeshHeader {\n")
+            self.Exporter.File.Indent()
+            self.Exporter.File.Write("{};\n".format(MaximumInfluences))
+            self.Exporter.File.Write("{};\n".format(3 * MaximumInfluences))
+            self.Exporter.File.Write("{};\n".format(len(BoneVertexGroups)))
+            self.Exporter.File.Unindent()
+            self.Exporter.File.Write("}\n")
+            
+            for BoneVertexGroup in BoneVertexGroups:
+                self.Exporter.File.Write("SkinWeights {\n")
+                self.Exporter.File.Indent()
+                self.Exporter.File.Write("\"{}\";\n".format(
+                    BoneVertexGroup.SafeName))
+                
+                GroupVertexCount = len(BoneVertexGroup.Indices)
+                self.Exporter.File.Write("{};\n".format(GroupVertexCount))
+                
+                # Write the indices of the vertices this bone affects.
+                for Index, VertexIndex in enumerate(BoneVertexGroup.Indices):
+                    self.Exporter.File.Write("{}".format(VertexIndex))
+                    
+                    if Index == GroupVertexCount - 1:
+                        self.Exporter.File.Write(";\n", Indent=False)
+                    else:
+                        self.Exporter.File.Write(",\n", Indent=False)
+                
+                # Write the weights of the affected vertices.
+                for Index, VertexWeight in enumerate(BoneVertexGroup.Weights):
+                    self.Exporter.File.Write("{:9f}".format(VertexWeight))
+                    
+                    if Index == GroupVertexCount - 1:
+                        self.Exporter.File.Write(";\n", Indent=False)
+                    else:
+                        self.Exporter.File.Write(",\n", Indent=False)
+                
+                # Write the bone's matrix.
+                Util.WriteMatrix(self.Exporter.File, BoneVertexGroup.BoneMatrix)
+            
+                self.Exporter.File.Unindent()
+                self.Exporter.File.Write("}} // End of {} skin weights\n" \
+                    .format(BoneVertexGroup.SafeName))
+
+    def __WriteMesh(self, Mesh):
+        self.Exporter.Log("Writing mesh vertices...")
+        self.Exporter.File.Write("Mesh {{ // {} mesh\n".format(self.SafeName))
+        self.Exporter.File.Indent()
+        
+        # Create the mesh enumerator based on options
+        MeshEnumerator = None
+        if (self.Config.ExportUVCoordinates and Mesh.uv_textures) or \
+            (self.Config.ExportVertexColors and Mesh.vertex_colors) or \
+            (self.Config.ExportSkinWeights):
+            MeshEnumerator = MeshExportObject._UnrolledFacesMeshEnumerator(Mesh)
+        else:
+            MeshEnumerator = MeshExportObject._OneToOneMeshEnumerator(Mesh)
+        
+        # Write vertex positions
+        VertexCount = len(MeshEnumerator.vertices)
+        self.Exporter.File.Write("{};\n".format(VertexCount))
+        for Index, Vertex in enumerate(MeshEnumerator.vertices):
+            Position = Vertex.co
+            self.Exporter.File.Write("{:9f};{:9f};{:9f};".format(
+                        Position[0], Position[1], Position[2]))
+            
+            if Index == VertexCount - 1:
+                self.Exporter.File.Write(";\n", Indent=False)
+            else:
+                self.Exporter.File.Write(",\n", Indent=False)
+        
+        # Write face definitions
+        PolygonCount = len(MeshEnumerator.PolygonVertexIndices)
+        self.Exporter.File.Write("{};\n".format(PolygonCount))
+        for Index, PolygonVertexIndices in \
+            enumerate(MeshEnumerator.PolygonVertexIndices):
+            
+            self.Exporter.File.Write("{};".format(len(PolygonVertexIndices)))
+            
+            if self.Config.CoordinateSystem == 'LEFT_HANDED':
+                PolygonVertexIndices = PolygonVertexIndices[::-1]
+            
+            for VertexCountIndex, VertexIndex in \
+                enumerate(PolygonVertexIndices):
+
+                if VertexCountIndex == len(PolygonVertexIndices) - 1:
+                    self.Exporter.File.Write("{};".format(VertexIndex),
+                        Indent=False)
+                else:
+                    self.Exporter.File.Write("{},".format(VertexIndex),
+                        Indent=False)
+            
+            if Index == PolygonCount - 1:
+                self.Exporter.File.Write(";\n", Indent=False)
+            else:
+                self.Exporter.File.Write(",\n", Indent=False)
+        self.Exporter.Log("Done")
+        
+        # Write the other mesh components
+            
+        if self.Config.ExportNormals:
+            self.Exporter.Log("Writing mesh normals...")
+            self.__WriteMeshNormals(Mesh)
+            self.Exporter.Log("Done")
+            
+        if self.Config.ExportUVCoordinates:
+            self.Exporter.Log("Writing mesh UV coordinates...")
+            self.__WriteMeshUVCoordinates(Mesh)
+            self.Exporter.Log("Done")
+
+        if self.Config.ExportMaterials:
+            self.Exporter.Log("Writing mesh materials...")
+            if self.Config.ExportActiveImageMaterials:
+                self.Exporter.Log("Referencing active images instead of "\
+                    "material image textures.")
+                self.__WriteMeshActiveImageMaterials(Mesh)
+            else:
+                self.__WriteMeshMaterials(Mesh)
+            self.Exporter.Log("Done")
+        
+        if self.Config.ExportVertexColors:
+            self.Exporter.Log("Writing mesh vertex colors...")
+            self.__WriteMeshVertexColors(Mesh, MeshEnumerator=MeshEnumerator)
+            self.Exporter.Log("Done")
+        
+        if self.Config.ExportSkinWeights:
+            self.Exporter.Log("Writing mesh skin weights...")
+            self.__WriteMeshSkinWeights(Mesh, MeshEnumerator=MeshEnumerator)
+            self.Exporter.Log("Done")
+
+        self.Exporter.File.Unindent()
+        self.Exporter.File.Write("}} // End of {} mesh\n".format(self.SafeName))
+
+    with open(filepath, 'w') as f:
+        fw = f.write
+        __WriteMeshSkinWeights(fw, 
+
+save(bpy.context, 'd:\\temp\\peasant\\test.x')

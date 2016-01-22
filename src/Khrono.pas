@@ -28,7 +28,7 @@ var
     (1, 0, 0, 1)
   );
   SunAngle: Single;
-  Paused: Boolean;
+  Paused: Boolean = true;
 
 procedure Init;
 procedure UISync;

@@ -189,12 +189,10 @@ end;
 procedure TModel3DObjectMesh.Draw;
 var
   i: Integer;
-  m4f: TGLMatrixf4;
 begin
-  m4f := Quaternion2Matrix(RotationQuaternion);
   glPushMatrix;
   glTranslatef(location[0], location[1], location[2]);
-  glMultMatrixf(@m4f);
+//  glMultMatrixf(@m4f);
   glScalef(Scale[0], Scale[1], Scale[2]);
   glBegin(GL_TRIANGLES);
   for i := 0 to High(Indices) do begin

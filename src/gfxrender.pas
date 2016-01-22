@@ -155,7 +155,7 @@ begin
   glClear(GL_COLOR_BUFFER_BIT + GL_DEPTH_BUFFER_BIT);
 
   glEnable( GL_TEXTURE_2D );
-//  RenderSky;
+  RenderSky;
 
   glEnable(GL_LIGHTING);
   BindTexture(texHouse);
@@ -165,7 +165,7 @@ begin
   glTranslatef(9, -6, 0);
   glScalef(0.3, 0.3, 0.3);
   glRotatef(90, 1, 0, 0);
-//  House.Draw;
+  House.Draw;
 
   glDisable( GL_TEXTURE_2D);
   glDisable(GL_LIGHTING);
@@ -173,7 +173,7 @@ begin
 
   glDepthMask(false);
   glMultMatrixf(@ShadowMatrix);
-//  House.Draw;
+  House.Draw;
   glDepthMask(true);
 
   glPopMatrix;
@@ -185,7 +185,7 @@ begin
   glColor3f(1, 1, 1);
   glPointSize(1);
   glNormal3f(0, 0, 1);
-//  glBegin(GL_TRIANGLE_STRIP);
+  glBegin(GL_TRIANGLE_STRIP);
       glTexCoord2i(0, 0);
       glVertex2i(-999, -999);
       glTexCoord2i(0, 333);
@@ -199,7 +199,7 @@ begin
 
   BindTexture(texPeasant);
   glPushMatrix;
-  glTranslatef(3, -2, 0.1);
+  glTranslatef(3, -2, 0.0);
 //  glRotatef(90, 1, 0, 0);
   glRotatef(-99, 0, 0, 1);
 //  glScalef(0.04, 0.04, 0.04);
