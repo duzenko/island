@@ -276,17 +276,17 @@ function  VectorAffineLerp(V1, V2: TAffineVector; t: Single): TAffineVector;
 function  VectorAffineSubtract(V1, V2: TAffineVector): TAffineVector;
 function  VectorAngle(V1, V2: TAffineVector): Single;
 function  VectorCombine(V1, V2: TVector; F1, F2: Single): TVector;
-function  VectorCrossProduct(V1, V2: TAffineVector): TAffineVector;
+//function  VectorCrossProduct(V1, V2: TAffineVector): TAffineVector;
 function  VectorDotProduct(V1, V2: TVector): Single;
 function  VectorLength(V: array of Single): Single;
 function  VectorLerp(V1, V2: TVector; t: Single): TVector;
 procedure VectorNegate(V: array of Single);
 function  VectorNorm(V: array of Single): Single;
-function  VectorNormalize(V: array of Single): Single;
+//function  VectorNormalize(V: array of Single): Single;
 function  VectorPerpendicular(V, N: TAffineVector): TAffineVector;
 function  VectorReflect(V, N: TAffineVector): TAffineVector;
-procedure VectorRotate(var Vector: TVector4f; Axis: TVector3f; Angle: Single);
-procedure VectorScale(V: array of Single; Factor: Single);
+//procedure VectorRotate(var Vector: TVector4f; Axis: TVector3f; Angle: Single);
+procedure VectorScale(var V: array of Single; Factor: Single);
 function  VectorSubtract(V1, V2: TVector): TVector;
 
 // matrix functions
@@ -306,26 +306,26 @@ procedure MatrixTranspose(var M: TMatrix);
 
 // quaternion functions
 function  QuaternionConjugate(Q: TQuaternion): TQuaternion;
-function  QuaternionFromPoints(V1, V2: TAffineVector): TQuaternion;
+//function  QuaternionFromPoints(V1, V2: TAffineVector): TQuaternion;
 function  QuaternionMultiply(qL, qR: TQuaternion): TQuaternion;
-function  QuaternionSlerp(QStart, QEnd: TQuaternion; Spin: Integer; t: Single): TQuaternion;
-function  QuaternionToMatrix(Q: TQuaternion): TMatrix;
-procedure QuaternionToPoints(Q: TQuaternion; var ArcFrom, ArcTo: TAffineVector);
+//function  QuaternionSlerp(QStart, QEnd: TQuaternion; Spin: Integer; t: Single): TQuaternion;
+//function  QuaternionToMatrix(Q: TQuaternion): TMatrix;
+//procedure QuaternionToPoints(Q: TQuaternion; var ArcFrom, ArcTo: TAffineVector);
 
 // mixed functions
-function  ConvertRotation(Angles: TAffineVector): TVector;
-function  CreateRotationMatrix(Axis: TVector3f; Angle: Single): TMatrix;
-function  MatrixDecompose(M: TMatrix; var Tran: TTransformations): Boolean;
+//function  ConvertRotation(Angles: TAffineVector): TVector;
+//function  CreateRotationMatrix(Axis: TVector3f; Angle: Single): TMatrix;
+//function  MatrixDecompose(M: TMatrix; var Tran: TTransformations): Boolean;
 function  VectorAffineTransform(V: TAffineVector; M: TAffineMatrix): TAffineVector;
 function  VectorTransform(V: TVector4f; M: TMatrix): TVector4f; overload;
 function  VectorTransform(const V: TVector3f; const M: TMatrix): TVector3f; overload;
 
 // miscellaneous functions
-function  MakeAffineDblVector(V: array of Double): TAffineDblVector;
-function  MakeDblVector(V: array of Double): THomogeneousDblVector;
-function  MakeAffineVector(V: array of Single): TAffineVector;
-function  MakeQuaternion(Imag: array of Single; Real: Single): TQuaternion;
-function  MakeVector(V: array of Single): TVector;
+//function  MakeAffineDblVector(V: array of Double): TAffineDblVector;
+//function  MakeDblVector(V: array of Double): THomogeneousDblVector;
+//function  MakeAffineVector(V: array of Single): TAffineVector;
+//function  MakeQuaternion(Imag: array of Single; Real: Single): TQuaternion;
+//function  MakeVector(V: array of Single): TVector;
 function  PointInPolygon(xp, yp : array of Single; x, y: Single): Boolean;
 function  VectorAffineDblToFlt(V: TAffineDblVector): TAffineVector;
 function  VectorDblToFlt(V: THomogeneousDblVector): THomogeneousVector;
@@ -333,22 +333,22 @@ function  VectorAffineFltToDbl(V: TAffineVector): TAffineDblVector;
 function  VectorFltToDbl(V: TVector): THomogeneousDblVector;
 
 // trigonometric functions
-function  ArcCos(X: Extended): Extended;
-function  ArcSin(X: Extended): Extended;
-function  ArcTan2(Y, X: Extended): Extended;
-function  CoTan(X: Extended): Extended;
+//function  ArcCos(X: Extended): Extended;
+//function  ArcSin(X: Extended): Extended;
+//function  ArcTan2(Y, X: Extended): Extended;
+//function  CoTan(X: Extended): Extended;
 function  DegToRad(Degrees: Extended): Extended;
 function  RadToDeg(Radians: Extended): Extended;
-procedure SinCos(Theta: Extended; var Sin, Cos: Extended);
-function  Tan(X: Extended): Extended;
+//procedure SinCos(Theta: Extended; var Sin, Cos: Extended);
+//function  Tan(X: Extended): Extended;
 
 // coordinate system manipulation functions
-function Turn(Matrix: TMatrix; Angle: Single): TMatrix; overload;
-function Turn(Matrix: TMatrix; MasterUp: TAffineVector; Angle: Single): TMatrix; overload;
-function Pitch(Matrix: TMatrix; Angle: Single): TMatrix; overload;
-function Pitch(Matrix: TMatrix; MasterRight: TAffineVector; Angle: Single): TMatrix; overload;
-function Roll(Matrix: TMatrix; Angle: Single): TMatrix; overload;
-function Roll(Matrix: TMatrix; MasterDirection: TAffineVector; Angle: Single): TMatrix; overload;
+//function Turn(Matrix: TMatrix; Angle: Single): TMatrix; overload;
+//function Turn(Matrix: TMatrix; MasterUp: TAffineVector; Angle: Single): TMatrix; overload;
+//function Pitch(Matrix: TMatrix; Angle: Single): TMatrix; overload;
+//function Pitch(Matrix: TMatrix; MasterRight: TAffineVector; Angle: Single): TMatrix; overload;
+//function Roll(Matrix: TMatrix; Angle: Single): TMatrix; overload;
+//function Roll(Matrix: TMatrix; MasterDirection: TAffineVector; Angle: Single): TMatrix; overload;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -385,7 +385,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure SinCos(Theta: Extended; var Sin, Cos: Extended); assembler; register;
+{procedure SinCos(Theta: Extended; var Sin, Cos: Extended); assembler; register;
 
 // calculates sine and cosine from the given angle Theta
 // EAX contains address of Sin
@@ -398,60 +398,60 @@ asm
               FSTP TBYTE PTR [EDX]    // cosine
               FSTP TBYTE PTR [EAX]    // sine
               FWAIT
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function ArcCos(X: Extended): Extended;
+{function ArcCos(X: Extended): Extended;
 
 begin
   Result := ArcTan2(Sqrt(1 - X * X), X);
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function ArcSin(X: Extended): Extended;
+{function ArcSin(X: Extended): Extended;
 
 begin
   Result := ArcTan2(X, Sqrt(1 - X * X))
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function ArcTan2(Y, X: Extended): Extended;
+{function ArcTan2(Y, X: Extended): Extended;
 
 asm
               FLD  Y
               FLD  X
               FPATAN
               FWAIT
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function Tan(X: Extended): Extended;
+{function Tan(X: Extended): Extended;
 
 asm
               FLD  X
               FPTAN
               FSTP ST(0)      // FPTAN pushes 1.0 after result
               FWAIT
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function CoTan(X: Extended): Extended;
+{function CoTan(X: Extended): Extended;
 
 asm
               FLD  X
               FPTAN
               FDIVRP
               FWAIT
-end;
+end;}
 
 //----------------- miscellaneous vector functions ---------------------------------------------------------------------
 
-function MakeAffineDblVector(V: array of Double): TAffineDblVector; assembler;
+{function MakeAffineDblVector(V: array of Double): TAffineDblVector; assembler;
 
 // creates a vector from given values
 // EAX contains address of V
@@ -468,11 +468,11 @@ asm
               REP MOVSD
               POP ESI
               POP EDI
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function MakeDblVector(V: array of Double): THomogeneousDblVector; assembler;
+{function MakeDblVector(V: array of Double): THomogeneousDblVector; assembler;
 
 // creates a vector from given values
 // EAX contains address of V
@@ -489,11 +489,11 @@ asm
               REP MOVSD
               POP ESI
               POP EDI
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function MakeAffineVector(V: array of Single): TAffineVector; assembler;
+{function MakeAffineVector(V: array of Single): TAffineVector; assembler;
 
 // creates a vector from given values
 // EAX contains address of V
@@ -518,11 +518,11 @@ asm
               REP STOSD                     // set remaining fields to 0
 @@Finish:     POP ESI
               POP EDI
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function MakeQuaternion(Imag: array of Single; Real: Single): TQuaternion; assembler;
+{function MakeQuaternion(Imag: array of Single; Real: Single): TQuaternion; assembler;
 
 // creates a quaternion from the given values
 // EAX contains address of Imag
@@ -542,11 +542,11 @@ asm
               MOV [EDI], EAX
               POP ESI
               POP EDI
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function MakeVector(V: array of Single): TVector; assembler;
+{function MakeVector(V: array of Single): TVector; assembler;
 
 // creates a vector from given values
 // EAX contains address of V
@@ -571,7 +571,7 @@ asm
               REP STOSD                     // set remaining fields to 0
 @@Finish:     POP ESI
               POP EDI
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -657,7 +657,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function VectorNormalize(V: array of Single): Single; assembler; register;
+{function VectorNormalize(V: array of Single): Single; assembler; register;
 
 // transforms a vector to unit length and return length
 // EAX contains address of V
@@ -684,7 +684,7 @@ asm
               LOOP @@1
               FSTP ST                       // remove reciprocal from FPU stack
 @@Finish:     POP EBX
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -748,7 +748,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure VectorRotate(var Vector: TVector4f; Axis: TVector3f; Angle: Single);
+{procedure VectorRotate(var Vector: TVector4f; Axis: TVector3f; Angle: Single);
 
 // rotates Vector about Axis with Angle radiants
 
@@ -757,20 +757,23 @@ var RotMatrix : TMatrix4f;
 begin
   RotMatrix := CreateRotationMatrix(Axis, Angle);
   Vector := VectorTransform(Vector, RotMatrix);
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure VectorScale(V: array of Single; Factor: Single); assembler; register;
+procedure VectorScale(var V: array of Single; Factor: Single); assembler; register;
 
 // returns a vector scaled by a factor
 // EAX contains address of V
 // EDX contains highest index in V
 // Factor is located on the stack
-
-asm
-  {for I := Low(V) to High(V) do V[I] := V[I] * Factor;}
-
+var
+  i: Integer;
+begin
+  for I := Low(V) to High(V) do
+    V[I] := V[I] * Factor;
+end;
+{asm
               FLD DWORD PTR [Factor]        // load factor
 @@Loop:       FLD DWORD PTR [EAX + 4 * EDX] // load a component
               FMUL ST, ST(1)                // multiply it with the factor
@@ -779,7 +782,7 @@ asm
               DEC EDX                       // do the entire array
               JNS @@Loop
               FSTP ST(0)                    // clean the FPU stack
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -872,7 +875,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function VectorCrossProduct(V1, V2: TAffineVector): TAffineVector;
+(*function VectorCrossProduct(V1, V2: TAffineVector): TAffineVector;
 
 // calculates the cross product between vector 1 and 2, Temp is necessary because
 // either V1 or V2 could also be the result vector
@@ -929,7 +932,7 @@ asm
               MOV EAX, [EBX + 8]
               MOV [ECX + 8], EAX
               POP EBX
-end;
+end;*)
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -1052,7 +1055,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function QuaternionFromPoints(V1, V2: TAffineVector): TQuaternion; assembler;
+(*function QuaternionFromPoints(V1, V2: TAffineVector): TQuaternion; assembler;
 
 // constructs a unit quaternion from two points on unit sphere
 // EAX contains address of V1
@@ -1074,7 +1077,7 @@ asm
               FDIVP ST(1), ST
               FSQRT
               FSTP DWORD PTR [ECX + 12]     // Result.RealPart := ST(0)
-end;
+end;*)
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -1100,7 +1103,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function QuaternionToMatrix(Q: TQuaternion): TMatrix;
+(*function QuaternionToMatrix(Q: TQuaternion): TMatrix;
 
 // Constructs rotation matrix from (possibly non-unit) quaternion.
 // Assumes matrix is used to multiply column vector on the left:
@@ -1156,11 +1159,11 @@ begin
   Result[Z, X] := 2 * A * C - 2 * CosA * B;
   Result[Z, Y] := 2 * B * C + 2 * CosA * A;
   Result[Z, Z] := 1 - 2 * A * A - 2 * B * B;
-end;
+end;         *)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure QuaternionToPoints(Q: TQuaternion; var ArcFrom, ArcTo: TAffineVector); register;
+{procedure QuaternionToPoints(Q: TQuaternion; var ArcFrom, ArcTo: TAffineVector); register;
 
 // converts a unit quaternion into two points on a unit sphere
 
@@ -1174,7 +1177,7 @@ begin
   ArcTo[Y] := Q.RealPart * ArcFrom[Y] + Q.ImagPart[Z] * ArcFrom[X];
   ArcTo[Z] := Q.ImagPart[X] * ArcFrom[Y] - Q.ImagPart[Y] * ArcFrom[X];
   if Q.RealPart < 0 then ArcFrom := MakeAffineVector([-ArcFrom[X], -ArcFrom[Y], 0]);
-end;
+end;}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -1350,7 +1353,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function CreateRotationMatrix(Axis: TVector3f; Angle: Single): TMatrix; register;
+{function CreateRotationMatrix(Axis: TVector3f; Angle: Single): TMatrix; register;
 
 // Creates a rotation matrix along the given Axis by the given Angle in radians.
 
@@ -1387,11 +1390,11 @@ begin
     Result[W, Z] := 0;
     Result[W, W] := 1;
   end;
-end;
+end;       }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function ConvertRotation(Angles: TAffineVector): TVector; register;
+(*function ConvertRotation(Angles: TAffineVector): TVector; register;
 
 { Turn a triplet of rotations about x, y, and z (in that order) into an
    equivalent rotation around a single axis (all in radians).
@@ -1518,7 +1521,7 @@ begin
           Exit;
         end;
   end;
-end;
+end;         *)
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -1632,7 +1635,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function QuaternionSlerp(QStart, QEnd: TQuaternion; Spin: Integer; t: Single): TQuaternion;
+{function QuaternionSlerp(QStart, QEnd: TQuaternion; Spin: Integer; t: Single): TQuaternion;
 
 // spherical linear interpolation of unit quaternions with spins
 // QStart, QEnd - start and end unit quaternions
@@ -1680,7 +1683,7 @@ begin
   Result.ImagPart[Y] := beta * QStart.ImagPart[Y] + t * QEnd.ImagPart[Y];
   Result.ImagPart[Z] := beta * QStart.ImagPart[Z] + t * QEnd.ImagPart[Z];
   Result.RealPart := beta * QStart.RealPart + t * QEnd.RealPart;
-end;
+end;           }
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -1709,7 +1712,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function MatrixDecompose(M: TMatrix; var Tran: TTransformations): Boolean; register;
+(*function MatrixDecompose(M: TMatrix; var Tran: TTransformations): Boolean; register;
 
 // Author: Spencer W. Thomas, University of Michigan
 //
@@ -1852,7 +1855,7 @@ begin
   end;
   // All done!
   Result := True;
-end;
+end;   *)
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -1920,7 +1923,7 @@ end;
 
 //----------------- coordinate system manipulation functions -----------------------------------------------------------
 
-function Turn(Matrix: TMatrix; Angle: Single): TMatrix;
+{function Turn(Matrix: TMatrix; Angle: Single): TMatrix;
 
 // rotates the given coordinate system (represented by the matrix) around its Y-axis
 
@@ -1976,7 +1979,7 @@ function Roll(Matrix: TMatrix; MasterDirection: TAffineVector; Angle: Single): T
 
 begin
   Result := MatrixMultiply(Matrix, CreateRotationMatrix(MasterDirection, Angle));
-end;
+end;      }
 
 //----------------------------------------------------------------------------------------------------------------------
 

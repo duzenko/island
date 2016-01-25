@@ -5,17 +5,19 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Grids,
-  Vcl.ValEdit, Vcl.ComCtrls;
+  Vcl.ValEdit, Vcl.ComCtrls, Vcl.CheckLst;
 
 type
   TForm1 = class(TForm)
     Timer1: TTimer;
     ValueListEditor1: TValueListEditor;
     TreeView1: TTreeView;
+    CheckListBox1: TCheckListBox;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure TreeView1Change(Sender: TObject; Node: TTreeNode);
+    procedure CheckListBox1ClickCheck(Sender: TObject);
   private
     { Private declarations }
   public
@@ -26,9 +28,14 @@ var
   Form1: TForm1;
 
 implementation uses
-  Unit7, Khrono, gfxrender, Model3D, dbxjson, StrUtils;
+  Unit7, Khrono, gfxrender, Model3D, dbxjson, StrUtils, MilitiaAdventurer;
 
 {$R *.dfm}
+
+procedure TForm1.CheckListBox1ClickCheck(Sender: TObject);
+begin
+  Peasant.Model3d.Bones[CheckListBox1.ItemIndex].DebugDraw := CheckListBox1.Checked[CheckListBox1.ItemIndex];
+end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 
@@ -105,6 +112,9 @@ begin
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
+var
+  i: Integer;
+  s: Ansistring;
 begin
   with ValueListEditor1.Strings do begin
     ValueFromIndex[0] := TimeToStr(Khrono.Time);
@@ -112,6 +122,16 @@ begin
     ValueFromIndex[2] := Format('%d/%d', [t3dmodel.DebugIndex, 1{High(Peasant)}]);
     ValueFromIndex[3] := Format('%f', [sunpos.x]);
     ValueFromIndex[4] := Format('%f', [sunpos.z]);
+  end;
+  if (Peasant.Model3d <> nil) and (CheckListBox1.Tag = 0) then begin
+    CheckListBox1.Tag := 1;
+    with Peasant.Model3d.Bones do
+      for i := 0 to Count-1 do begin
+        s := Data[i].Name;
+        if Data[i].Parent <> nil then
+          s := s + ' <- ' + Data[i].Parent.Name;
+        CheckListBox1.Items.Add(String(s));
+      end;
   end;
 end;
 

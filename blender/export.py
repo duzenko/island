@@ -23,6 +23,7 @@ import bpy
 import math
 import mathutils
 import bpy_extras.io_utils
+import sys
 
 from progress_report import ProgressReport, ProgressReportSubstep
 
@@ -232,11 +233,13 @@ def write_bones(context, scene, filepath, MYOBJECTS):
             for pbone in object.pose.bones:
                 if pbone.parent:
                     parentName = pbone.parent.name;
-                    boneMat = pbone.matrix*pbone.parent.matrix.inverted()
-#                    boneMat = pbone.matrix
+#                    boneMat = pbone.matrix*pbone.parent.matrix.inverted()
+                    boneMat = object.matrix_local*pbone.matrix
                 else:
                     parentName = '';
-                    boneMat = pbone.matrix
+                    boneMat = object.matrix_local*pbone.matrix
+                    if frame==1:
+                        print(object.name, object.matrix_world, pbone.name, pbone.matrix)
 
                 myfile.write ('%i %s %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n' % (frame, pbone.name, parentName,
                          boneMat[0][0], boneMat[1][0], boneMat[2][0], boneMat[3][0], 
@@ -351,12 +354,10 @@ def write_file(filepath, objects, scene,
             _MeshEnumerator.__init__(self, Mesh)
             
             self.vertices = Mesh.vertices
-            print('new _OneToOneMeshEnumerator', len(self.vertices))
-            
             self.PolygonVertexIndices = tuple(tuple(Polygon.vertices)
                 for Polygon in Mesh.polygons)
                 
-    def ExportWeights():
+    def ExportWeights(mx):
         ArmatureModifierList = [Modifier 
             for Modifier in ob.modifiers
             if Modifier.type == 'ARMATURE' and Modifier.show_viewport]
@@ -418,7 +419,13 @@ def write_file(filepath, objects, scene,
         for BoneVertexGroup in BoneVertexGroups:
             fw("b ")
             fw(BoneVertexGroup.SafeName)
-            fw("\nvw")
+            boneMat = mx.inverted()
+            fw(' %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n' % (
+                     boneMat[0][0], boneMat[1][0], boneMat[2][0], boneMat[3][0], 
+                     boneMat[0][1], boneMat[1][1], boneMat[2][1], boneMat[3][1], 
+                     boneMat[0][2], boneMat[1][2], boneMat[2][2], boneMat[3][2], 
+                     boneMat[0][3], boneMat[1][3], boneMat[2][3], boneMat[3][3]))            
+            fw("vw")
             # Write the weights of the affected vertices.
             for Index, (VertexIndex, VertexWeight) in enumerate(zip(BoneVertexGroup.Indices, BoneVertexGroup.Weights)):
                 fw(' %d/%f' % (VertexIndex, VertexWeight))
@@ -604,7 +611,7 @@ def write_file(filepath, objects, scene,
                         for v in me_verts:
                             fw('v %.6f %.6f %.6f\n' % v.co[:])
                         
-                        ExportWeights()
+                        ExportWeights(ob.matrix_world)
                                 
                         subprogress2.step()
 
@@ -894,7 +901,6 @@ def _write(context, filepath,
         scene.frame_set(orig_frame, 0.0)
         progress.leave_substeps()
 
-
 """
 Currently the exporter lacks these features:
 * multiple scene export (only active scene is written)
@@ -947,4 +953,4 @@ def save(context, filepath="",
 
     return {'FINISHED'}
 
-save(bpy.context, 'd:\\temp\\peasant\\test.obj')
+save(bpy.context, bpy.path.abspath("//model.obj"))

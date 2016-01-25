@@ -38,28 +38,28 @@ const
     (StartNo: 391; EndNo: 394),
     (StartNo: 395; EndNo: 415)
   );
-  cDefaultMeshes = [Body, Sheat, Purse, Shield, LegBag,
+  cDefaultMeshes = [Body, Sheat, Purse, LegBag,
     LegKnife, Bandolera, ThrowingKnife1, ThrowingKnife2,
     Scroll1, ThrowingKnife3, Scroll2, Potion];
   cAnimationMeshes: array[TAnimations] of set of TMesh = (
-    cDefaultMeshes + [Sword1],
-    cDefaultMeshes + [Sword1],
-    cDefaultMeshes + [Sword1],
-    cDefaultMeshes + [Sword1],
-    cDefaultMeshes + [Sword1],
-    cDefaultMeshes + [Sword1],
-    cDefaultMeshes + [Sword1],
+    cDefaultMeshes + [Sword1, Shield],
+    cDefaultMeshes + [Sword1, Shield],
+    cDefaultMeshes + [Sword1, Shield],
+    cDefaultMeshes + [Sword1, Shield],
+    cDefaultMeshes + [Sword1, Shield],
+    cDefaultMeshes + [Sword1, Shield],
+    cDefaultMeshes + [Sword1, Shield],
     cDefaultMeshes + [PitchFork],
     cDefaultMeshes + [Shovel],
     cDefaultMeshes + [Scythe],
-    cDefaultMeshes + [Sword1]
+    cDefaultMeshes + []
   );
 
 { TMilitiaAdventurer }
 
 class constructor TMilitiaAdventurer.Create;
 begin
-  Model3D := T3DModel.Create('D:\temp\peasant\test.obj');
+  Model3D := T3DModel.Create('..\models\peasant\model.obj');
 end;
 
 procedure TMilitiaAdventurer.Draw;
@@ -68,9 +68,9 @@ var
   ani: TAnimations;
 begin
   frame := gettickcount div 40 mod 415 + 1;
-  if T3DModel.DebugDraw then
-    frame := T3DModel.DebugIndex+1;
-  for ani := Low(TAnimations) to High(TAnimations) do     
+//  if T3DModel.DebugDraw then
+//    frame := T3DModel.DebugIndex+1;
+  for ani := Low(TAnimations) to High(TAnimations) do
     if (frame >= AnimationFrames[ani].StartNo) and (frame <= AnimationFrames[ani].EndNo) then
       Model3d.TurnMeshes(Cardinal(cAnimationMeshes[ani]));
   Model3d.Draw(frame - 1);

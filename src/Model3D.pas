@@ -42,6 +42,8 @@ type
     Frames: TVectorf16Array;
     Weights: TWeightArray;
     Parent: PModelBone;
+    DebugDraw: Boolean;
+    ObjectMatrix: TMatrix;
     function WorldMatrix(Frame: Integer): TMatrix;
   end;
 //  PModelBone = ^TModelBone;
@@ -205,7 +207,7 @@ end;
 procedure T3DModel.CalcSkin(frame: Integer);
 var
   i, j, vi: Integer;
-  mpw, mpwi, mbl, mt: TMatrix;
+  mpw, mpwi, mt: TMatrix;
   v1: TGLVectorf3;
 begin
   SetLength(VerticesSkinned, 0);
@@ -213,26 +215,16 @@ begin
   for i := 0 to Bones.Count-1 do
     for j := 0 to Bones[i].Weights.Count-1 do begin
       vi := Bones[i].Weights[j].VertexIndex;
-{      m1 := Bones[i].WorldMatrix(0);
-      MatrixInvert(m1);
-      m2 := TMatrix(Bones[i].WorldMatrix(frame));
-      m3 := MatrixMultiply(m1, m2);}
-
-      Bones[i].WorldMatrix(frame);
-
-      mpw := Bones[i].Parent.WorldMatrix(frame);
-      mpwi := mpw;
+      mpwi := Bones[i].WorldMatrix(0);
       MatrixInvert(mpwi);
-      mbl := TMatrix(Bones[i].Frames[frame]^);
-      mt := MatrixMultiply(mpwi, mbl);
-      mt := MatrixMultiply(mt, mpw);
-{}
+      mpw := Bones[i].WorldMatrix(frame);
+      mt := MatrixMultiply(mpwi, mpw);
       v1 := VectorTransform(Vertices[vi]^, mt);
       VectorScale(v1, Bones[i].Weights[j].Weight);
       VerticesSkinned[vi].v[0] := VerticesSkinned[vi].v[0] + v1[0];
       VerticesSkinned[vi].v[1] := VerticesSkinned[vi].v[1] + v1[1];
       VerticesSkinned[vi].v[2] := VerticesSkinned[vi].v[2] + v1[2];
-//      VerticesSkinned[vi].used := true;
+      VerticesSkinned[vi].used := true;
     end;
 end;
 
@@ -264,35 +256,44 @@ begin
         vi3 := Faces.FData[j];                 
         glNormal3fv(pointer(Normals[vi3[2]]));
         glTexCoord2fv(pointer(texCoords[vi3[1]]));
-        if VerticesSkinned[vi3[0]].used then 
+        if VerticesSkinned[vi3[0]].used then
           glVertex3fv(@VerticesSkinned[vi3[0]].v)
-        else     
+        else
           glVertex3fv(pointer(Vertices[vi3[0]]));
       end;
       glEnd;
-      if Mesh.HasBones then begin
-        glScalef(19, 19, 19);
+{      if Mesh.HasBones then begin
         glDisable(GL_DEPTH_TEST);
         glPointSize(8);
         glLineWidth(3);
         glDisable(GL_TEXTURE_2D);
         glBegin(GL_POINTS);
-        glColor3f(1, 0, 1);
-        for j := 0 to Bones.Count-1 do
+        for j := 0 to Bones.Count-1 do begin
+          if Bones[j].DebugDraw then
+            glColor3f(0, 1, 1)
+          else
+            glColor3f(1, 0, 1);
           glVertex3fv(@Bones[j].Point);
+        end;
         glEnd;
         glBegin(GL_LINES);
         for j := 0 to Bones.Count-1 do begin
-          if Bones[j].Parent = nil then
-            Continue;
+          if Bones[j].DebugDraw then
+            glColor3f(0, 1, 1)
+          else
+            glColor3f(1, 0, 1);
           glVertex3fv(@Bones[j].Point);
-          glVertex3fv(@Bones[j].Parent.Point);
+          if Bones[j].Parent = nil then
+            glVertex3fv(@NullVector)
+          else
+            glVertex3fv(@Bones[j].Parent.Point);
         end;
         glEnd;
+        glLineWidth(1);
         glColor3f(1, 1, 1);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
-      end;
+      end;     }
       glPopMatrix;
     end;
   end;
@@ -492,7 +493,7 @@ var
 
   procedure LoadObj;
   var
-    i: Integer;
+    i, j: Integer;
   begin
       Vertices.Add;
       Normals.Add;
@@ -509,6 +510,9 @@ var
         if Line[0] = 'b' then
         begin
           Bone := BoneByName(Line[1]);
+          for j := 0 to 15 do
+            if TextToFloat(Line[2+j], d) then
+              TVectorf16(Bone.ObjectMatrix)[j] := d;
           Mesh.HasBones := true;
         end;
         if Line[0] = 'vw' then
@@ -611,10 +615,7 @@ end;
 
 function TModelBone.WorldMatrix(Frame: Integer): TMatrix;
 begin
-  if (Parent = nil) {or (Parent.Parent = nil)} then
-    Result := TMatrix(Frames[frame]^)
-  else
-    Result := MatrixMultiply(Parent.WorldMatrix(frame), TMatrix(Frames[frame]^));
+  Result := MatrixMultiply(TMatrix(Frames[frame]^), ObjectMatrix);
   Point := VectorTransform(NullVector, Result);
 end;
 

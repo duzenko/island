@@ -7,3 +7,5 @@ binWin32/
 dcuWin32/
 *.dproj
 *.bin
+dcuWin64/
+binWin64/

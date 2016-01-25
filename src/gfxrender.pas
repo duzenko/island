@@ -1,7 +1,7 @@
 unit gfxrender;
 
 interface uses
-  Windows, SysUtils, Classes, Graphics, Model3D, Model3DBlend, dglOpenGL;
+  Windows, SysUtils, Classes, Graphics, Model3D, Model3DBlend, dglOpenGL, MilitiaAdventurer;
 
 var
   glRC: THandle;
@@ -9,15 +9,14 @@ var
   CameraLook: record x, y: Single end = (x: -140; y: -90);
   House: T3DModel;
   Peasants: array[1..415] of T3DModel;
+  Peasant: TMilitiaAdventurer;
 
 procedure Render;
 procedure CameraMoved;
 
 implementation uses
-  Math, Khrono, MilitiaAdventurer;
+  Math, Khrono;
 
-var
-  Peasant: TMilitiaAdventurer;
 
 type
   TTextureEnum = (texGrass, texHouse, texSun, texMoon, texPeasant);
@@ -40,7 +39,7 @@ begin
     Free;
   end;
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 end;
 
 procedure CameraMoved;
@@ -215,7 +214,7 @@ begin
   glColor3f(1, 1, 0.5);
   glPushMatrix;
   glTranslatef(-6, -12, 0);
-//  glBegin(GL_LINES);
+  glBegin(GL_LINES);
   RandSeed := 0;
   for i := -3999 to 3999 do begin
       v[0] := random*9;

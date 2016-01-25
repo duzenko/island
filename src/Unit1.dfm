@@ -36,7 +36,6 @@ object Form1: TForm1
       '='
       '=')
     TabOrder = 0
-    ExplicitWidth = 184
     ColWidths = (
       87
       174)
@@ -49,7 +48,17 @@ object Form1: TForm1
     Align = alClient
     Indent = 19
     TabOrder = 1
+    Visible = False
     OnChange = TreeView1Change
+  end
+  object CheckListBox1: TCheckListBox
+    Left = 0
+    Top = 89
+    Width = 284
+    Height = 564
+    OnClickCheck = CheckListBox1ClickCheck
+    Align = alClient
+    TabOrder = 2
   end
   object Timer1: TTimer
     Interval = 11
