@@ -139,7 +139,7 @@ type
   TVector3i = TAffineIntVector;
 
   PAffineFltVector = ^TAffineFltVector;
-  TAffineFltVector = TGLVectorf3; //array[0..2] of Single;
+  TAffineFltVector = array[0..2] of Single;
   TVector3f = TAffineFltVector;
 
   PAffineDblVector = ^TAffineDblVector;
@@ -276,13 +276,13 @@ function  VectorAffineLerp(V1, V2: TAffineVector; t: Single): TAffineVector;
 function  VectorAffineSubtract(V1, V2: TAffineVector): TAffineVector;
 function  VectorAngle(V1, V2: TAffineVector): Single;
 function  VectorCombine(V1, V2: TVector; F1, F2: Single): TVector;
-//function  VectorCrossProduct(V1, V2: TAffineVector): TAffineVector;
+function  VectorCrossProduct(V1, V2: TAffineVector): TAffineVector;
 function  VectorDotProduct(V1, V2: TVector): Single;
 function  VectorLength(V: array of Single): Single;
 function  VectorLerp(V1, V2: TVector; t: Single): TVector;
 procedure VectorNegate(V: array of Single);
 function  VectorNorm(V: array of Single): Single;
-//function  VectorNormalize(V: array of Single): Single;
+function  VectorNormalize(var V: array of Single): Single;
 function  VectorPerpendicular(V, N: TAffineVector): TAffineVector;
 function  VectorReflect(V, N: TAffineVector): TAffineVector;
 //procedure VectorRotate(var Vector: TVector4f; Axis: TVector3f; Angle: Single);
@@ -657,9 +657,18 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-{function VectorNormalize(V: array of Single): Single; assembler; register;
-
-// transforms a vector to unit length and return length
+function VectorNormalize(var V: array of Single): Single;
+var
+  vn: Single;
+  i: Integer;
+begin
+  vn := VectorNorm(v);
+  if vn = 0 then
+    Exit;
+  vn := 1/vn;
+  for i := 0 to High(V) do
+    V[i] := V[i] / vn;
+{// transforms a vector to unit length and return length
 // EAX contains address of V
 // EDX contains the highest index in V
 // return former length of V in ST
@@ -683,8 +692,8 @@ asm
               FSTP DWORD PTR [EBX + 4 * ECX] // store result
               LOOP @@1
               FSTP ST                       // remove reciprocal from FPU stack
-@@Finish:     POP EBX
-end;}
+@@Finish:     POP EBX}
+end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -875,7 +884,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-(*function VectorCrossProduct(V1, V2: TAffineVector): TAffineVector;
+function VectorCrossProduct(V1, V2: TAffineVector): TAffineVector;
 
 // calculates the cross product between vector 1 and 2, Temp is necessary because
 // either V1 or V2 could also be the result vector
@@ -885,13 +894,13 @@ end;
 // ECX contains address of result
 
 var Temp: TAffineVector;
-
-asm
-  {Temp[X] := V1[Y] * V2[Z]-V1[Z] * V2[Y];
+begin
+  Temp[X] := V1[Y] * V2[Z]-V1[Z] * V2[Y];
   Temp[Y] := V1[Z] * V2[X]-V1[X] * V2[Z];
   Temp[Z] := V1[X] * V2[Y]-V1[Y] * V2[X];
-  Result := Temp;}
+  Result := Temp;
 
+{asm
               PUSH EBX                      // save EBX, must be restored to original value
               LEA EBX, [Temp]
               FLD DWORD PTR [EDX + 8]       // first load both vectors onto FPU register stack
@@ -931,8 +940,8 @@ asm
               MOV [ECX + 4], EAX
               MOV EAX, [EBX + 8]
               MOV [ECX + 8], EAX
-              POP EBX
-end;*)
+              POP EBX}
+end;
 
 //----------------------------------------------------------------------------------------------------------------------
 

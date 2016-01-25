@@ -53,8 +53,8 @@ end;
 procedure LoadModels;
 const {$J+}
   No: Integer = 0;
-var
-  i: Integer;
+//var
+//  i: Integer;
 begin
 //  TThread.CurrentThread.Priority := tpLower;
   House := T3DModel.Create('..\models\farmhouse\OBJ\Farmhouse OBJ.obj');
@@ -63,14 +63,14 @@ begin
 //  Peasant := T3DModel.Create('D:\temp\Militia-Adventurer-RIGGED.obj');
 //  Peasant := TModel3DBlend.Create('D:\temp\Militia-Adventurer-RIGGED.json');
 //  Peasant2 := T3DModel.Create('D:\dev\rnd\island\models\peasant\Militia-Adventurer-RIGGED.obj');
-  repeat
+  {repeat
     i := InterlockedIncrement(No);
     if i > 415 then
       Break;
 //    Peasants[i] := T3DModel.Create(Format('D:\temp\objanim\Militia-Adventurer-RIGGED_%.*d.obj', [6, i]));//'..\models\peasant\Militia-Adventurer-RIGGED.obj');
 //    Peasants[i] := T3DModel.Create(Format('D:\temp\peasant\test_%.*d.objx', [6, i]));//'..\models\peasant\Militia-Adventurer-RIGGED.obj');
     Sleep(1);
-  until false;
+  until false;}
 end;
 
 procedure Init;
@@ -197,16 +197,7 @@ begin
   glDisable (GL_BLEND);
 
   BindTexture(texPeasant);
-  glPushMatrix;
-  glTranslatef(3, -2, 0.0);
-//  glRotatef(90, 1, 0, 0);
-  glRotatef(-99, 0, 0, 1);
-//  glScalef(0.04, 0.04, 0.04);
-//  glScalef(44, 44, 44);
   Peasant.Draw;
-//  Peasants[gettickcount div 40 mod 415 + 1].Draw;
-//  TMilitiaAdventurer.Model3d.Draw;
-  glPopMatrix;
 
   glDisable( GL_TEXTURE_2D);
 

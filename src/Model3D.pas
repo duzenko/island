@@ -219,7 +219,7 @@ begin
       MatrixInvert(mpwi);
       mpw := Bones[i].WorldMatrix(frame);
       mt := MatrixMultiply(mpwi, mpw);
-      v1 := VectorTransform(Vertices[vi]^, mt);
+      v1 := TGLVectorf3(VectorTransform(TAffineVector(pointer(Vertices[vi])^), mt));
       VectorScale(v1, Bones[i].Weights[j].Weight);
       VerticesSkinned[vi].v[0] := VerticesSkinned[vi].v[0] + v1[0];
       VerticesSkinned[vi].v[1] := VerticesSkinned[vi].v[1] + v1[1];
@@ -616,7 +616,7 @@ end;
 function TModelBone.WorldMatrix(Frame: Integer): TMatrix;
 begin
   Result := MatrixMultiply(TMatrix(Frames[frame]^), ObjectMatrix);
-  Point := VectorTransform(NullVector, Result);
+  Point := TGLVectorf3(VectorTransform(NullVector, Result));
 end;
 
 end.
