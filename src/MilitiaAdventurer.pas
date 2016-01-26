@@ -1,7 +1,7 @@
 unit MilitiaAdventurer;
 
 interface uses
-  Windows, Classes, Model3D, dglOpengl, Vectors;
+  Windows, SysUtils, Classes, Model3D, dglOpengl, Vectors;
 
 type
   TRoutine = (Hail, Drill, Field, Reflex, Sleep);
@@ -23,8 +23,11 @@ type
     Model3d: T3DModel;
   end;
 
+var
+  Peasant: TMilitiaAdventurer;
+
 implementation uses
-  DateUtils, Khrono;
+  DateUtils, Khrono, Obstacles;
 
 type
   TMesh = (Body, Sheat, Purse, Shield, Sword1, LegBag,
@@ -65,13 +68,13 @@ const
     cDefaultMeshes + [Scythe],
     cDefaultMeshes + []
   );
-  RoutineTime: array[TRoutine] of TDateTime = (0.2, 0.35, 0.5, 0.65, 0.8);
-  RoutineLoc: array[TRoutine] of record Loc, Look: TGLVectorf3; FastTravel: Boolean end = (
-    (Loc: (5, -3, 0); Look: (-1, 0, 0)),
-    (Loc: (3, -3, 0); Look: (-1, 0, 0)),
-    (Loc: (2, -6, 0); Look: (0, -1, 0)),
-    (Loc: (12, -3, 0); Look: (1, 0, 0)),
-    (Loc: (8, -3, 0.5); Look: (0, -1, 0); FastTravel: True)
+  RoutineTime: array[TRoutine] of TDateTime = (0.2, 0.32, 0.44, 0.56, 0.74);
+  RoutineLoc: array[TRoutine] of record Loc, Look: TGLVectorf3 end = (
+    (Loc: (5, -2, 0); Look: (-1, 0, 0)),
+    (Loc: (4, -1, 0)),
+    (Loc: (2, -5, 0)),
+    (Loc: (12, -1.5, 0); Look: (1, 0, 0)),
+    (Loc: (8, -2, 0.5); Look: (0, -1, 0))
   );
   RoutineAnimations: array[TRoutine] of TAnimation = (
     Cheering, Attack1, UseShovel, HoldScythe, Idle
@@ -82,30 +85,42 @@ const
 procedure TMilitiaAdventurer.AI;
 var
   Time: TDateTime;
-  r: TRoutine;
-  Dir: TVector;
-  DestDist: Single;
-const
-  cSpeed = 1e-3;
-begin
-  while not TThread.CheckTerminated do begin
-    Time := TimeOf(Khrono.Time);
-    Visible := Abs(Time - 0.5) < 0.3;
+
+  procedure GetRoutine;
+  var
+    r: TRoutine;
+  begin
     Routine := High(TRoutine);
     for r := Low(TRoutine) to High(TRoutine) do
       if Time > RoutineTime[r] then
         Routine := r;
-    if RoutineLoc[Routine].FastTravel then begin
-      Location := RoutineLoc[Routine].Loc;
-      Look := RoutineLoc[Routine].Look;
-    end else begin
+  end;
+
+var
+  Dir: TVector;
+  DestDist: Single;
+const
+  cSpeed = 2e-3;
+begin
+  GetRoutine;
+  Location := RoutineLoc[Routine].Loc;
+  Look := RoutineLoc[Routine].Look;
+  while not TThread.CheckTerminated do begin
+    Time := TimeOf(Khrono.Time);
+    Visible := Abs(Time - 0.5) < 0.3;
+    GetRoutine;
+    begin
       Dir := RoutineLoc[Routine].Loc - Location;
       DestDist := Dir;
-      Dir.Normalise;
+      if Dir.Normalise then
+        TObstacles.FixDir(Dir, Location);
       Location := Location + Dir*cSpeed;
-//      Look := Look + RoutineLoc[Routine].Look;
-//      Look.Normalise;
-      Look := RoutineLoc[Routine].Look;
+      if Single(TVector(RoutineLoc[Routine].Look)) = 0 then
+        Look := Look + Dir*3e-3
+      else
+        Look := Look + TVector(RoutineLoc[Routine].Look)*3e-3;
+      Look.Normalise;
+//      Look := RoutineLoc[Routine].Look;
       if DestDist > 0.5 then
         Animation := Walk
       else
@@ -122,13 +137,15 @@ end;
 
 constructor TMilitiaAdventurer.Create;
 begin
+  Location := RoutineLoc[Sleep].Loc;
   AIThread := TThread.CreateAnonymousThread(AI);
+  AIThread.FreeOnTerminate := true;
   AIThread.Start;
 end;
 
 destructor TMilitiaAdventurer.Destroy;
 begin
-  AIThread.Free;
+  AIThread.Terminate;
   inherited;
 end;
 
@@ -146,11 +163,16 @@ begin
   Model3d.TurnMeshes(Cardinal(cAnimationMeshes[Animation]));
   glPushMatrix;
   glTranslatef(Location.x, Location.y, Location.z);
-  M.CalcTransformationMatrix(tvector.Create(0, -1, 0), Look);
+  M.CalcTransformationMatrix2(tvector.Create(0, -1, 0), Look);
   glMultMatrixf(@M);
 //  glRotatef(-180, 0, 0, 1);
   Model3d.Draw(frame - 1);
   glPopMatrix;
 end;
+
+initialization
+
+finalization
+  FreeAndNil(Peasant);
 
 end.

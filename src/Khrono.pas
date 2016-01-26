@@ -66,7 +66,7 @@ var
 begin
   while true do begin
     if not Paused then
-      Time := Time + 0.00003; //Now*3000;//6000;
+      Time := Time + 2e-5; //Now*3000;//6000;
     SunAngle := Frac(Time);
     SinCos(SunAngle*2*Pi, s, c);
     MoonPos.x := s;

@@ -9,7 +9,6 @@ var
   CameraLook: record x, y: Single end = (x: -140; y: -90);
   House: T3DModel;
   Peasants: array[1..415] of T3DModel;
-  Peasant: TMilitiaAdventurer;
 
 procedure Render;
 procedure CameraMoved;
@@ -17,9 +16,9 @@ procedure CameraMoved;
 implementation uses
   Math, Khrono;
 
-
 type
   TTextureEnum = (texGrass, texHouse, texSun, texMoon, texPeasant);
+
 var
   Textures: array[TTextureEnum] of GLint;
 
@@ -161,7 +160,7 @@ begin
   glColor3f(1, 1, 1);
 
   glPushMatrix;
-  glTranslatef(9, -6, 0);
+  glTranslatef(9, -5, 0);
   glScalef(0.3, 0.3, 0.3);
   glRotatef(90, 1, 0, 0);
   House.Draw;

@@ -11,7 +11,8 @@ uses
   Model3D in 'Model3D.pas',
   jsonhelper in 'jsonhelper.pas',
   Model3DBlend in 'Model3DBlend.pas',
-  MilitiaAdventurer in 'MilitiaAdventurer.pas';
+  MilitiaAdventurer in 'MilitiaAdventurer.pas',
+  Obstacles in 'Obstacles.pas';
 
 {$R *.res}
 

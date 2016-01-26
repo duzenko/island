@@ -7,7 +7,7 @@ type
 //  PVector = ^TVector;
   TVector = record
     class operator Implicit(const a: TGLVectorf3): TVector;
-//    class operator Implicit(const a: TVector3): TAffineVector;
+    class operator Negative(const a: TVector): TVector;
     class operator Implicit(a: TVector): Single;
     class operator Add(const a, b: TVector): TVector;
     class operator Subtract(const a, b: TVector): TVector;
@@ -15,16 +15,17 @@ type
     class operator Multiply(const a, b: TVector): Single;
     class operator Modulus(const a, b: TVector): TVector;
     constructor Create(a, b, c: Single; d: Single = 1);
-    procedure Normalise;
+    function Normalise: Boolean;
     case byte of
     0:
       (x, y, z, w: Single);
     1:
-      (v: TGLVectorf3);
+      (v: TGLVectorf4);
   end;
 
   TMatrix = record
     procedure CalcTransformationMatrix(const a, b: TVector);
+    procedure CalcTransformationMatrix2(const a, b: TVector);
     function Invert3: TMatrix;
     function Transpose: TMatrix;
     procedure Mul3(const a, b: TMatrix);
@@ -39,6 +40,14 @@ function VectorMul(const v: TGLVectorf3; f: Single): TGLVectorf3;
 function VectorNew(f: Single): TGLVectorf3;
 procedure VectorSlide(var v: TGLVectorf3; f: Single); overload;
 procedure VectorSlide(var v: TGLVectorf3; const f: TGLVectorf3); overload;
+
+const
+  IdentityMatrix: TMatrix = (v:(
+    (v: (1, 0, 0, 0)),
+    (v: (0, 1, 0, 0)),
+    (v: (0, 0, 1, 0)),
+    (v: (0, 0, 0, 1))
+  ));
 
 implementation
 
@@ -104,7 +113,8 @@ end;
 
 class operator TVector.Implicit(const a: TGLVectorf3): TVector;
 begin
-  Result.v := a;
+  Move(a, Result.v, 12);
+  Result.w := 1;
 end;
 
 class operator TVector.Modulus(const a, b: TVector): TVector;
@@ -131,12 +141,20 @@ begin
   Result.z := a.z * b;
 end;
 
-procedure TVector.Normalise;
+class operator TVector.Negative(const a: TVector): TVector;
+begin
+  Result.x := -a.x;
+  Result.y := -a.y;
+  Result.z := -a.z;
+end;
+
+function TVector.Normalise;
 var
   f: Single;
 begin
   f := Self;
-  if f > 0 then begin
+  Result := f > 0;
+  if Result then begin
     f := 1/f;
     x := x*f;
     y := y*f;
@@ -155,13 +173,15 @@ end;
 
 procedure TMatrix.CalcTransformationMatrix(const a, b: TVector);
 var
-  axis, v4: TVector;
-  M1, M1R, M2, tmp: TMatrix;
-  c, s: Single;
+  axis: TVector;
+  M1, M1R, M2: TMatrix;
 begin
   axis := a mod b;
-  axis.Normalise;
-  v4 := v3 mod a;
+  if not axis.Normalise then begin
+    Self := IdentityMatrix;
+    Exit;
+  end;
+//  v4 := axis mod a;
   M1.v0 := a;
   M2.v0 := b;
   M1.v1 := axis;
@@ -179,6 +199,7 @@ begin
   M2.v3 := TVector.Create(0, 0, 0);
   tmp.Mul3(M1R, M2);
   Mul3(tmp, M1);}
+  V[2].z := 1;
   V[0].w := 0;
   V[1].w := 0;
   V[2].w := 0;
@@ -196,6 +217,15 @@ begin
   Result := a1 * (b2 * c3 - b3 * c2) -
             b1 * (a2 * c3 - a3 * c2) +
             c1 * (a2 * b3 - a3 * b2);
+end;
+
+procedure TMatrix.CalcTransformationMatrix2(const a, b: TVector);
+begin
+  Self := IdentityMatrix;
+  v[0].x := a.x*b.x + a.y*b.y;
+  v[0].y := -b.x*a.y + a.x*b.y;
+  v[1].x := -v[0].y;
+  v[1].y := v[0].x;
 end;
 
 function TMatrix.Invert3;
