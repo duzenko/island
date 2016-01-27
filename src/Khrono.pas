@@ -9,7 +9,7 @@ const
   SunLight: TGLVectorf3 = (1-DayAmbient, 1-DayAmbient, 0.9-DayAmbient);
   MoonLight: TGLVectorf3 = (0.25-NightAmbient, 0.25-NightAmbient, 0.35-NightAmbient);
 var
-  Time: TDateTime = 0.15;
+  Time: TDateTime = 0.46;
   SunPos, MoonPos: record x, y, z, w: Single end;
   SunColor: TGLVectorf4 = (1, 1, 0.9, 1);
   MoonColor: TGLVectorf4 = (0.3, 0.3, 0.4, 1);

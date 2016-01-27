@@ -14,31 +14,54 @@ implementation
 
 class procedure TObstacles.FixDir(var Dir: TVector; const Loc: TVector);
 const
-  HouseX1 = 6;
-  HouseX2 = 10;
-  HouseY1 = -22;
-  HouseY2 = -2;
-  NormX1: TVector = (v: (-1, 0, 0, 0));
-  NormX2: TVector = (v: (+1, 0, 0, 0));
-  NormY1: TVector = (v: (0, -1, 0, 0));
-  NormY2: TVector = (v: (0, +1, 0, 0));
+  HouseC1: TVector = (x: 6; y: -22);
+  HouseC2: TVector = (x: 12; y: -2);
+  TentC1: TVector = (x: 6; y: -2);
+  TentC2: TVector = (x: 12; y: 0);
+  ObstNorms: array[-4..4] of TVector = (
+    (v: (-1, -1, 0, 0)),
+    (v: (-1, 0, 0, 0)),
+    (v: (-1, +1, 0, 0)),
+    (v: (0, -1, 0, 0)),
+    (),
+    (v: (0, +1, 0, 0)),
+    (v: (+1, -1, 0, 0)),
+    (v: (+1, 0, 0, 0)),
+    (v: (+1, +1, 0, 0))
+  );
+
 var
+  TestInside, LocInside: ShortInt;
   ObstNorm, RightVec, TestLoc: TVector;
+
+  procedure TestHouse;
+  begin
+    TestInside := TestLoc.Inside(HouseC1, HouseC2);
+    if TestInside <> 0 then
+      Exit;
+    LocInside := Loc.Inside(HouseC1, HouseC2);
+    ObstNorm := ObstNorms[LocInside];
+    if not ObstNorm.Normalise then
+      Exit;
+    RightVec := ObstNorm mod Dir;
+    if RightVec.Normalise then
+      Dir := -(ObstNorm mod RightVec);
+  end;
+
+  procedure TestTent;
+  begin
+    TestInside := TestLoc.Inside(TentC1, TentC2);
+    if TestInside <> 0 then
+      Dir.z := -Loc.z
+    else
+      Dir.z := 0.5 - Loc.z;
+  end;
+
 begin
-  ObstNorm := TVector.Create(0, 0, 0);
   TestLoc := Loc + Dir;
-  if (Loc.x < HouseX1) and (TestLoc.x > HouseX1) then
-    ObstNorm := ObstNorm + NormX1;
-  if (Loc.x > HouseX2) and (TestLoc.x < HouseX2) then
-    ObstNorm := ObstNorm + NormX2;
-  if (Loc.y < HouseY1) and (TestLoc.y > HouseY1) then
-    ObstNorm := ObstNorm + NormY1;
-  if (Loc.y < HouseY2) and (TestLoc.y > HouseY2) then
-    ObstNorm := ObstNorm + NormY2;
-  if not ObstNorm.Normalise then
-    Exit;
-  RightVec := ObstNorm mod Dir;
-  Dir := -(ObstNorm mod Dir);
+  TestHouse;
+  TestLoc := Loc + Dir;
+  TestTent;
 end;
 
 end.

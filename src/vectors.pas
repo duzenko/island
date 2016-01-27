@@ -16,6 +16,7 @@ type
     class operator Modulus(const a, b: TVector): TVector;
     constructor Create(a, b, c: Single; d: Single = 1);
     function Normalise: Boolean;
+    function Inside(const a, b: TVector): ShortInt;
     case byte of
     0:
       (x, y, z, w: Single);
@@ -109,6 +110,21 @@ begin
   Result := Sqr(a.x) + Sqr(a.y) + Sqr(a.z);
   if Result > 0 then
     Result := Sqrt(Result);
+end;
+
+function TVector.Inside(const a, b: TVector): ShortInt;
+begin
+  Result := 0;
+  if y < a.y then
+    Result := -1
+  else
+    if y > b.y then
+      Result := +1;
+  if x < a.x then
+    Dec(Result, 3)
+  else
+    if x > b.x then
+      Inc(Result, 3);
 end;
 
 class operator TVector.Implicit(const a: TGLVectorf3): TVector;

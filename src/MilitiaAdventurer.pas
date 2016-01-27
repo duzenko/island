@@ -73,7 +73,7 @@ const
     (Loc: (5, -2, 0); Look: (-1, 0, 0)),
     (Loc: (4, -1, 0)),
     (Loc: (2, -5, 0)),
-    (Loc: (12, -1.5, 0); Look: (1, 0, 0)),
+    (Loc: (13, -1.8, 0); Look: (1, 0, 0)),
     (Loc: (8, -2, 0.5); Look: (0, -1, 0))
   );
   RoutineAnimations: array[TRoutine] of TAnimation = (
@@ -84,16 +84,18 @@ const
 
 procedure TMilitiaAdventurer.AI;
 var
-  Time: TDateTime;
+  Time: TTime;
 
   procedure GetRoutine;
   var
     r: TRoutine;
   begin
+    Time := TimeOf(Khrono.Time);
     Routine := High(TRoutine);
     for r := Low(TRoutine) to High(TRoutine) do
       if Time > RoutineTime[r] then
         Routine := r;
+    Visible := Abs(Time - 0.5) < 0.3;
   end;
 
 var
@@ -106,19 +108,17 @@ begin
   Location := RoutineLoc[Routine].Loc;
   Look := RoutineLoc[Routine].Look;
   while not TThread.CheckTerminated do begin
-    Time := TimeOf(Khrono.Time);
-    Visible := Abs(Time - 0.5) < 0.3;
     GetRoutine;
-    begin
+    if not Paused then begin
       Dir := RoutineLoc[Routine].Loc - Location;
       DestDist := Dir;
       if Dir.Normalise then
         TObstacles.FixDir(Dir, Location);
       Location := Location + Dir*cSpeed;
-      if Single(TVector(RoutineLoc[Routine].Look)) = 0 then
-        Look := Look + Dir*3e-3
-      else
-        Look := Look + TVector(RoutineLoc[Routine].Look)*3e-3;
+//      if Single(TVector(RoutineLoc[Routine].Look)) = 0 then
+        Look := Look + Dir*3e-3;
+//      else
+//        Look := Look + TVector(RoutineLoc[Routine].Look)*3e-3;
       Look.Normalise;
 //      Look := RoutineLoc[Routine].Look;
       if DestDist > 0.5 then
@@ -163,8 +163,10 @@ begin
   Model3d.TurnMeshes(Cardinal(cAnimationMeshes[Animation]));
   glPushMatrix;
   glTranslatef(Location.x, Location.y, Location.z);
-  M.CalcTransformationMatrix2(tvector.Create(0, -1, 0), Look);
-  glMultMatrixf(@M);
+  if Look.Normalise then begin
+    M.CalcTransformationMatrix2(tvector.Create(0, -1, 0), Look);
+    glMultMatrixf(@M);
+  end;
 //  glRotatef(-180, 0, 0, 1);
   Model3d.Draw(frame - 1);
   glPopMatrix;
