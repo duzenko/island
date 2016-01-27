@@ -611,8 +611,6 @@ def write_file(filepath, objects, scene,
                         for v in me_verts:
                             fw('v %.6f %.6f %.6f\n' % v.co[:])
                         
-                        ExportWeights(ob.matrix_world)
-                                
                         subprogress2.step()
 
                         # UV
@@ -786,6 +784,8 @@ def write_file(filepath, objects, scene,
 
                             fw('\n')
 
+                        ExportWeights(ob.matrix_world)
+                                
                         subprogress2.step()
 
                         # Write edges.
@@ -926,7 +926,7 @@ def save(context, filepath="",
          use_selection=False,
          use_animation=False,
          global_matrix=None,
-         path_mode='AUTO'
+         path_mode='STRIP'
          ):
 
     print('filepath ', filepath)

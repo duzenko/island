@@ -20,7 +20,7 @@ type
     procedure Draw;
     procedure AI;
   class var
-    Model3d: T3DModel;
+    Model3d: TModel3D;
   end;
 
 var
@@ -132,7 +132,7 @@ end;
 
 class constructor TMilitiaAdventurer.Create;
 begin
-  Model3D := T3DModel.Create('..\models\peasant\model.obj');
+  Model3D := TModel3D.Create('..\models\peasant\model.obj');
 end;
 
 constructor TMilitiaAdventurer.Create;
@@ -154,6 +154,8 @@ var
   frame: Integer;
   M: TMatrix;
 begin
+  if Self = nil then
+    Exit;
   if not Visible then
     Exit;
   with AnimationFrames[Animation] do

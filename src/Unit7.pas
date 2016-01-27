@@ -34,7 +34,7 @@ implementation uses
 
 procedure TForm7.FormCreate(Sender: TObject);
 begin
-  Cursor := crNone;
+//  Cursor := crNone;
   QueryPerformanceFrequency(pcf);
 end;
 
@@ -58,8 +58,8 @@ begin
     Cursor := crNone;
   end;
   VK_F6:      Cursor := crDefault;
-  VK_LEFT:    Dec(T3DModel.DebugIndex);
-  VK_RIGHT:   Inc(T3DModel.DebugIndex);
+  VK_LEFT:    Dec(TModel3D.DebugIndex);
+  VK_RIGHT:   Inc(TModel3D.DebugIndex);
   VK_SPACE:   Khrono.Paused := not Khrono.Paused;
   end;
 end;

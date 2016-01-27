@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'Tahoma'
   Font.Style = []
   KeyPreview = True
+  Menu = MainMenu1
   OldCreateOrder = False
   Visible = True
   OnCreate = FormCreate
@@ -65,5 +66,16 @@ object Form1: TForm1
     OnTimer = Timer1Timer
     Left = 88
     Top = 472
+  end
+  object MainMenu1: TMainMenu
+    Left = 136
+    Top = 328
+    object Utils1: TMenuItem
+      Caption = 'Utils'
+      object Rendertrees1: TMenuItem
+        Caption = 'Render trees'
+        OnClick = Rendertrees1Click
+      end
+    end
   end
 end

@@ -12,7 +12,10 @@ uses
   jsonhelper in 'jsonhelper.pas',
   Model3DBlend in 'Model3DBlend.pas',
   MilitiaAdventurer in 'MilitiaAdventurer.pas',
-  Obstacles in 'Obstacles.pas';
+  Obstacles in 'Obstacles.pas',
+  Trees in 'Trees.pas',
+  TextureManager in 'TextureManager.pas',
+  ObjLoader in 'ObjLoader.pas';
 
 {$R *.res}
 

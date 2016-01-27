@@ -1,44 +1,33 @@
 unit gfxrender;
 
 interface uses
-  Windows, SysUtils, Classes, Graphics, Model3D, Model3DBlend, dglOpenGL, MilitiaAdventurer;
+  Windows, SysUtils, Classes, Graphics, Model3D, Model3DBlend, dglOpenGL,
+  MilitiaAdventurer, Trees;
 
 var
   glRC: THandle;
   AspectRatio: Single;
   CameraLook: record x, y: Single end = (x: -140; y: -90);
-  House: T3DModel;
-  Peasants: array[1..415] of T3DModel;
+  House: TModel3D;
 
 procedure Render;
 procedure CameraMoved;
 
 implementation uses
-  Math, Khrono;
+  Math, Khrono, TextureManager;
 
 type
-  TTextureEnum = (texGrass, texHouse, texSun, texMoon, texPeasant);
-
-var
-  Textures: array[TTextureEnum] of GLint;
+  TTextureEnum = (texGrass, texSun, texMoon);
 
 procedure BindTexture(texEnum: TTextureEnum);
+const
+  TexFiles: array[TTextureEnum] of string = (
+    '..\textures\green-grass-texture.jpg',
+    '..\textures\sun.jpg',
+    '..\textures\a2fdc0061b03.png'
+  );
 begin
-  glBindTexture(GL_TEXTURE_2D, Ord(texEnum));
-end;
-
-procedure LoadTexture(texEnum: TTextureEnum; const fn: string);
-begin
-  BindTexture(texEnum);
-  with TBitmap.Create do try
-    LoadFromFile(fn);
-    gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,
-                         GL_BGR, GL_UNSIGNED_BYTE, ScanLine[Height-1]);
-  finally
-    Free;
-  end;
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  TTextureManager.SwitchTo(TexFiles[texEnum]);
 end;
 
 procedure CameraMoved;
@@ -52,38 +41,12 @@ end;
 procedure LoadModels;
 const {$J+}
   No: Integer = 0;
-//var
-//  i: Integer;
 begin
-//  TThread.CurrentThread.Priority := tpLower;
-  House := T3DModel.Create('..\models\farmhouse\OBJ\Farmhouse OBJ.obj');
-//  Peasant := T3DModel.Create('D:\temp\peasant\test.obj');
+  House := TModel3D.Create('..\models\farmhouse\Farmhouse OBJ.obj');
   Peasant := TMilitiaAdventurer.Create();
-//  Peasant := T3DModel.Create('D:\temp\Militia-Adventurer-RIGGED.obj');
-//  Peasant := TModel3DBlend.Create('D:\temp\Militia-Adventurer-RIGGED.json');
-//  Peasant2 := T3DModel.Create('D:\dev\rnd\island\models\peasant\Militia-Adventurer-RIGGED.obj');
-  {repeat
-    i := InterlockedIncrement(No);
-    if i > 415 then
-      Break;
-//    Peasants[i] := T3DModel.Create(Format('D:\temp\objanim\Militia-Adventurer-RIGGED_%.*d.obj', [6, i]));//'..\models\peasant\Militia-Adventurer-RIGGED.obj');
-//    Peasants[i] := T3DModel.Create(Format('D:\temp\peasant\test_%.*d.objx', [6, i]));//'..\models\peasant\Militia-Adventurer-RIGGED.obj');
-    Sleep(1);
-  until false;}
 end;
 
 procedure Init;
-const
-  TexFiles: array[TTextureEnum] of string = (
-    '..\textures\grass2.bmp',
-    '..\models\farmhouse\Textures\Farmhouse Texture.bmp',
-    '..\textures\sun.bmp',
-    '..\textures\moon.bmp',
-    '..\models\peasant\Militia-Texture.bmp'
-  );
-var
-  tex: TTextureEnum;
-//  i: Integer;
 begin
   TThread.CreateAnonymousThread(LoadModels).Start;
   glEnable(GL_NORMALIZE);
@@ -95,9 +58,6 @@ begin
   glLoadIdentity;
   glFrustum(-AspectRatio, AspectRatio, -1, 1, 1, 1000);
   glMatrixMode(GL_MODELVIEW);
-  glGenTextures(Length(Textures), @Textures);
-  for tex := Low(TTextureEnum) to High(TTextureEnum) do
-    LoadTexture(tex, TexFiles[tex]);
 end;
 
 procedure RenderSky;
@@ -156,8 +116,7 @@ begin
   RenderSky;
 
   glEnable(GL_LIGHTING);
-  BindTexture(texHouse);
-  glColor3f(1, 1, 1);
+//  BindTexture(texHouse);
 
   glPushMatrix;
   glTranslatef(9, -5, 0);
@@ -195,8 +154,8 @@ begin
   glEnd;
   glDisable (GL_BLEND);
 
-  BindTexture(texPeasant);
   Peasant.Draw;
+  TTrees.Draw;
 
   glDisable( GL_TEXTURE_2D);
 
@@ -220,6 +179,7 @@ begin
   glPopMatrix;
 
   glDisable(GL_LIGHTING);
+  glColor3f(1, 1, 1);
 end;
 
 end.

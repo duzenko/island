@@ -1,11 +1,9 @@
 unit Unit1;
 
-interface
-
-uses
+interface uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Grids,
-  Vcl.ValEdit, Vcl.ComCtrls, Vcl.CheckLst;
+  Vcl.ValEdit, Vcl.ComCtrls, Vcl.CheckLst, Vcl.Menus, dglOpengl, ShellApi;
 
 type
   TForm1 = class(TForm)
@@ -13,11 +11,15 @@ type
     ValueListEditor1: TValueListEditor;
     TreeView1: TTreeView;
     CheckListBox1: TCheckListBox;
+    MainMenu1: TMainMenu;
+    Utils1: TMenuItem;
+    Rendertrees1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure TreeView1Change(Sender: TObject; Node: TTreeNode);
     procedure CheckListBox1ClickCheck(Sender: TObject);
+    procedure Rendertrees1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -28,7 +30,8 @@ var
   Form1: TForm1;
 
 implementation uses
-  Unit7, Khrono, gfxrender, Model3D, dbxjson, StrUtils, MilitiaAdventurer;
+  Unit7, Khrono, gfxrender, Model3D, dbxjson, StrUtils, MilitiaAdventurer,
+  Trees;
 
 {$R *.dfm}
 
@@ -111,6 +114,37 @@ begin
   end;
 end;
 
+procedure TForm1.Rendertrees1Click(Sender: TObject);
+var
+  BMP: TBitmap;
+begin
+  BMP := TBitmap.Create;
+  BMP.PixelFormat := pf24bit;
+  BMP.Width := Form7.ClientHeight;
+  BMP.Height := Form7.ClientHeight;
+
+  glViewport(0, 0, Form7.ClientHeight, Form7.ClientHeight);
+  glClearColor(0.27, 0.4, 0.7, 0.0);//Light blue
+  glClear(GL_COLOR_BUFFER_BIT + GL_DEPTH_BUFFER_BIT);
+  glLoadIdentity;
+  glOrtho(-1, 1, 0, 2, 0, 5);
+  glEnable( GL_TEXTURE_2D);
+  TTrees.Model3d.TurnMeshes(2);
+  glTranslatef(0, 0, 2);
+  glRotatef(-90, 1, 0, 0);
+//  glScalef(2, 2, 2);
+  TTrees.Model3d.Draw;
+  glDisable( GL_TEXTURE_2D);
+  glFinish;
+  glFlush;
+  glReadPixels(0, 0, Form7.ClientHeight, Form7.ClientHeight, GL_BGR, GL_UNSIGNED_BYTE, BMP.ScanLine[Form7.ClientHeight-1]);
+  CameraMoved;
+  bmp.SaveToFile('1.bmp');
+  bmp.Free;
+  glViewport(0, 0, Form7.ClientWidth, Form7.ClientHeight);
+  ShellExecute(0, nil, '1.bmp', nil, nil, 0);
+end;
+
 procedure TForm1.Timer1Timer(Sender: TObject);
 var
   i: Integer;
@@ -119,7 +153,7 @@ begin
   with ValueListEditor1.Strings do begin
     ValueFromIndex[0] := TimeToStr(Khrono.Time);
     ValueFromIndex[1] := Format('%d ms', [frametime]);
-    ValueFromIndex[2] := Format('%d/%d', [t3dmodel.DebugIndex, 1{High(Peasant)}]);
+    ValueFromIndex[2] := Format('%d/%d', [tmodel3d.DebugIndex, 1{High(Peasant)}]);
     ValueFromIndex[3] := Format('%f', [sunpos.x]);
     ValueFromIndex[4] := Format('%f', [sunpos.z]);
   end;

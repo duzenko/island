@@ -8,29 +8,30 @@ type
   TFastArray<T> = record
   type P = ^T;
   private
-    FData: array of T; 
     function GetData(i: Integer): P;
   public
     Count: Integer;
+    FData: array of T;
     function Add: P; overload;
     procedure Add(const v: T); overload;
     procedure SetSize(Size: Integer);
+    procedure SetMinSize(Size: Integer);
     property Data[i:Integer]: P read GetData; default;
   end;
-  TIndexVector = TGLVectori3;
-  TIndexArray = TFastArray<TIndexVector>;
+  TIndexArray = TFastArray<Integer>;
   PIndexArray = ^TIndexArray;
   TVectorf16 = array[0..15] of Single;
   TVectorf16Array = TFastArray<TVectorf16>;
   TFaces = TFastArray<TIndexArray>;
 
   TModelMesh = record
-    Name: AnsiString;
+    Name, Material: String;
     TurnedOff, HasBones: Boolean;
-    Faces: TFaces;
+    Polys: TFaces;
+    Triangles: TIndexArray;
     Animations: TVectorf16Array;
     procedure AddPoly(out poly: PIndexArray);
-    procedure AddFace(poly: PIndexArray; s1, s2, s3: PAnsiChar);
+//    procedure AddFace(poly: PIndexArray; s1, s2, s3: PAnsiChar);
   end;
   PModelMesh = ^TModelMesh;
 
@@ -48,22 +49,22 @@ type
   end;
 //  PModelBone = ^TModelBone;
   TBoneArray = TFastArray<TModelBone>;
-  
-  T3DModel = class
-  private
+
+  TModel3D = class
+  protected
     function AddMesh: PModelMesh;
-    procedure AddNormal(s1, s2, s3: PAnsiChar);
-    procedure AddTex(s1, s2: PAnsiChar);
-    procedure AddVertex(s1, s2, s3: PAnsiChar);
-    function MeshByName(s: PAnsiChar): PModelMesh;
+    function MeshByName(const s: String): PModelMesh;
     function BoneByName(s: PAnsiChar): TBoneArray.P;
     procedure CalcSkin(frame: Integer);
+    procedure LoadFromFile(const fn: string);
+    procedure DrawIndexArray(Mode: GLint; const ia: TIndexArray);
   public
     TexCoords: TFastArray<TGLVectorf2>;
     Vertices, Normals: TFastArray<TGLVectorf3>;
     VerticesSkinned: array of record v: TGLVectorf3; used: Boolean end;
     Meshes: array of TModelMesh;
     Bones: TBoneArray;
+    MtlStyles: TStringList;
 
     constructor Create(const fn: string);
     destructor Destroy; override;
@@ -77,42 +78,7 @@ type
   end;
 
 implementation uses
-  Math, Character, AnsiStrings, ActiveX;
-
-type
-  TStringListX = class
-  private
-    FStrings: TFastArray<PAnsiChar>;
-    function GetString(i: Integer): PAnsiChar;
-    function GetCount: Integer;
-  public
-    Delimiter: AnsiChar;
-    procedure SetDelimitedText(Value: PAnsiChar);
-    constructor Create;
-    destructor Destroy; override;
-    property Strings[i: Integer]: PAnsiChar read GetString; default;
-    property Count: Integer read GetCount;
-  end;
-
-  TFileLoader = class helper for T3DModel
-    procedure LoadFromFile(const fn: string);
-//    procedure LoadFromDae(const fn: string);
-    procedure LoadFromObj(const fn: string);
-//    procedure LoadFromOgre(const fn: string);
-//    procedure LoadFrom3ds(const fn: string);
-  end;
-
-function ValLong(S: PAnsiChar): Longint;
-var
-  Dig: Integer;
-begin
-  Result := 0;
-  while S^<>#0 do begin
-    Dig := Ord(S^)-Ord('0');
-    Result := Result * 10 + Dig;
-    Inc(S);
-  end;
-end;
+  Math, Character, AnsiStrings, ActiveX, ObjLoader, TextureManager;
 
 { TVectorf3Array }
 
@@ -138,73 +104,33 @@ begin
   Result := @FData[i];
 end;
 
+procedure TFastArray<T>.SetMinSize(Size: Integer);
+begin
+  if Size > Count then
+    SetSize(Size);
+end;
+
 procedure TFastArray<T>.SetSize(Size: Integer);
 begin
   Count := Size;
   SetLength(FData, Size);
 end;
 
-{ TStringListX }
-
-constructor TStringListX.Create;
-begin
-  Delimiter := ' ';
-end;
-
-destructor TStringListX.Destroy;
-begin
-  inherited;
-end;
-
-function TStringListX.GetCount: Integer;
-begin
-  Result := FStrings.Count;
-end;
-
-function TStringListX.GetString(i: Integer): PAnsiChar;
-begin
-  Result := FStrings[i]^;
-end;
-
-procedure TStringListX.SetDelimitedText(Value: PAnsiChar);
-var
-  P, P1: PAnsiChar;
-const
-  StrictDelimiter = true;
-  QuoteChar = '"';
-  FStrictDelimiter = StrictDelimiter;
-//  Delimiter = ' ';
-begin
-    FStrings.Count := 0;
-    P := PAnsiChar(Value);
-    P1 := P;
-    while P^ <> #0 do begin
-      if P^ = Delimiter then begin
-        FStrings.Add(p1);
-        p^ := #0;
-        Inc(P);// := NextChar(P);
-        P1 := P;
-      end;
-      if P^ <> Delimiter then 
-        Inc(P);// := NextChar(P);
-    end;
-    if P1<>P then
-      FStrings.Add(p1);
-end;
-
 { T3DModel }
 
-constructor T3DModel.Create(const fn: string);
+constructor TModel3D.Create(const fn: string);
 begin
+  MtlStyles := TStringList.Create;
   LoadFromFile(fn);
 end;
 
-destructor T3DModel.Destroy;
+destructor TModel3D.Destroy;
 begin
   inherited;
+  FreeAndNil(MtlStyles);
 end;
 
-procedure T3DModel.CalcSkin(frame: Integer);
+procedure TModel3D.CalcSkin(frame: Integer);
 var
   i, j, vi: Integer;
   mpw, mpwi, mt: TMatrix;
@@ -228,38 +154,37 @@ begin
     end;
 end;
 
-procedure T3DModel.Draw(frame: Integer);
+procedure TModel3D.Draw(frame: Integer);
 var
   i, j, k: Integer;
-  vi3: TIndexVector;
+  vi3: Integer;
+//  vi3: TIndexVector;
   Mesh: PModelMesh;
   Faces: TFaces.P;
 begin
   if Self = nil then
     Exit;
-//  if not (DebugIndex in [0..414]) then
-//    Exit;
-//  for k := DebugIndex to DebugIndex do begin
   CalcSkin(frame);
   for k := 0{DebugIndex} to {DebugIndex{ }High(Meshes){} do begin
     Mesh := @Meshes[k];
     if Mesh.TurnedOff then
       Continue;
-    for i := 0 to Mesh.Faces.Count-1 do begin
+    TTextureManager.SwitchTo(MtlStyles.Values[mesh.Material]);
+    for i := 0 to Mesh.Polys.Count-1 do begin
       if frame >= Mesh.Animations.Count then
-        Continue;                                          
-      Faces := Mesh.Faces[i];
+        Continue;
+      Faces := Mesh.Polys[i];
       glPushMatrix;
       glMultMatrixf(pointer(Mesh.Animations[frame]));
       glBegin(GL_TRIANGLE_FAN);
       for j := 0 to Faces.Count-1 do begin
-        vi3 := Faces.FData[j];                 
-        glNormal3fv(pointer(Normals[vi3[2]]));
-        glTexCoord2fv(pointer(texCoords[vi3[1]]));
-        if VerticesSkinned[vi3[0]].used then
-          glVertex3fv(@VerticesSkinned[vi3[0]].v)
+        vi3 := Faces.FData[j];
+        glNormal3fv(pointer(Normals[vi3]));
+        glTexCoord2fv(pointer(texCoords[vi3]));
+        if VerticesSkinned[vi3].used then
+          glVertex3fv(@VerticesSkinned[vi3].v)
         else
-          glVertex3fv(pointer(Vertices[vi3[0]]));
+          glVertex3fv(pointer(Vertices[vi3]));
       end;
       glEnd;
 {      if Mesh.HasBones then begin
@@ -299,35 +224,44 @@ begin
   end;
 end;
 
-procedure T3DModel.Draw;
+procedure TModel3D.DrawIndexArray(Mode: GLint; const ia: TIndexArray);
+begin
+  glDrawElements(Mode, ia.Count, GL_UNSIGNED_INT, ia.Data[0]);
+//      glBegin(GL_TRIANGLE_FAN);
+//      for j := 0 to Faces.Count-1 do begin
+//        vi3 := Faces.Data[j]^;
+//        glNormal3fv(pointer(Normals[vi3]));
+//        glTexCoord2fv(pointer(texCoords[vi3]));
+//        glVertex3fv(pointer(Vertices[vi3]));
+//      end;
+//      glEnd;
+end;
+
+procedure TModel3D.Draw;
 var
-  i, j, k: Integer;
-  vi3: TIndexArray.P;
+  i, k: Integer;
   Mesh: PModelMesh;
-  Faces: TFaces.P;
 begin
   if Self = nil then
     Exit;
-//  if not (DebugIndex in [Low(Meshes)..High(Meshes)]) then
-//    Exit;
-//  for k := DebugIndex to DebugIndex do begin
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(3, GL_FLOAT, 0, Vertices.Data[0]);
+  glNormalPointer(GL_FLOAT, 0, Normals.Data[0]);
+    glTexCoordPointer(2, GL_FLOAT, 0, TexCoords.Data[0]);
   for k := 0{DebugIndex} to {DebugIndex{ }High(Meshes){} do begin
     Mesh := @Meshes[k];
-    for i := 0 to Mesh.Faces.Count-1 do begin
-      Faces := Mesh.Faces[i];
-      glBegin(GL_TRIANGLE_FAN);
-      for j := 0 to Faces.Count-1 do begin
-        vi3 := Faces.Data[j];
-        glNormal3fv(pointer(Normals[vi3[2]]));
-        glTexCoord2fv(pointer(texCoords[vi3[1]]));
-        glVertex3fv(pointer(Vertices[vi3[0]]));
-      end;
-      glEnd;
-    end;
+    if Mesh.TurnedOff then
+      Continue;
+    TTextureManager.SwitchTo(MtlStyles.Values[mesh.Material]);
+    for i := 0 to Mesh.Polys.Count-1 do
+      DrawIndexArray(GL_TRIANGLE_FAN, Mesh.Polys[i]^);
+    DrawIndexArray(GL_TRIANGLES, Mesh.Triangles);
   end;
 end;
 
-function T3DModel.MeshByName(s: PAnsiChar): PModelMesh;
+function TModel3D.MeshByName(const s: String): PModelMesh;
 var
   i: Integer;
 begin
@@ -337,7 +271,7 @@ begin
       Result := @Meshes[i];
 end;
 
-procedure T3DModel.TurnMeshes(Flags: Cardinal);
+procedure TModel3D.TurnMeshes(Flags: Cardinal);
 var
   i: Integer;
 begin
@@ -350,32 +284,13 @@ begin
   OutputDebugString(PWideChar(StringReplace(s, #13#10, '', [rfReplaceAll])));
 end;
 
-  function T3DModel.AddMesh;
+  function TModel3D.AddMesh;
   begin
     SetLength(Meshes, Length(Meshes)+1);
     Result := @Meshes[High(Meshes)];
   end;
 
-function TextToFloat(S: PAnsiChar; var Value: Double): Boolean;
-begin
-  Result := SysUtils.TextToFloat(string(S), Value, FormatSettings);
-end;
-
-procedure T3DModel.AddVertex(s1, s2, s3: PAnsiChar);
-var
-  f: Double;
-  v: TGLVectorf3;
-begin
-  if TextToFloat(s1, f) then
-    v[0] := f;
-  if TextToFloat(s2, f) then
-    v[1] := f;
-  if TextToFloat(s3, f) then
-    v[2] := f;
-  Vertices.Add(v);
-end;
-
-function T3DModel.BoneByName(s: PAnsiChar): TBoneArray.P;
+function TModel3D.BoneByName(s: PAnsiChar): TBoneArray.P;
 var
   i: Integer;
 begin
@@ -389,226 +304,25 @@ begin
   end;
 end;
 
-procedure T3DModel.AddNormal(s1, s2, s3: PAnsiChar);
-var
-  f: Double;
-  v: TGLVectorf3;
-begin
-  if TextToFloat(s1, f) then
-    v[0] := f;
-  if TextToFloat(s2, f) then
-    v[1] := f;
-  if TextToFloat(s3, f) then
-    v[2] := f;
-  Normals.Add(v);
-end;
-
 procedure TModelMesh.AddPoly(out poly: PIndexArray);
 begin
-  Poly := pointer(Faces.Add);
+  Poly := pointer(Polys.Add);
 end;
 
-procedure T3DModel.AddTex(s1, s2: PAnsiChar);
-var
-  f: Double;
-  v: TGLVectorf2;
-begin
-  if TextToFloat(s1, f) then
-    v[0] := f;
-  if TextToFloat(s2, f) then
-    v[1] := f;
-  TexCoords.Add(v);
-end;
+//procedure TModelMesh.AddFace(poly: PIndexArray; s1, s2, s3: PAnsiChar);
+//var
+//  v: TIndexVector;
+//begin
+//  v[0] := ValLong(s1);
+//  v[1] := ValLong(s2);
+//  v[2] := ValLong(s3);
+//  poly.Add(v);
+//end;
 
-procedure TModelMesh.AddFace(poly: PIndexArray; s1, s2, s3: PAnsiChar);
-var
-  v: TIndexVector;
-begin
-  v[0] := ValLong(s1);
-  v[1] := ValLong(s2);
-  v[2] := ValLong(s3);
-  poly.Add(v);
-end;
-
-{ TFileLoader }
-
-procedure TFileLoader.LoadFromFile(const fn: string);
+procedure TModel3D.LoadFromFile(const fn: string);
 begin
   if ExtractFileExt(fn) = '.obj' then
     LoadFromObj(fn);
-//  if ExtractFileExt(fn) = '.dae' then
-//    LoadFromDae(fn);
-//  if ExtractFileExt(fn) = '.scene' then
-//    LoadFromOgre(fn);
-//  if ExtractFileExt(fn) = '.3ds' then
-//    LoadFrom3ds(fn);
-end;
-
-procedure TFileLoader.LoadFromObj(const fn: string);
-var
-  Mesh: PModelMesh;
-  poly: PIndexArray;
-  Bone: TBoneArray.P;
-  Line, Pack: TStringListX;
-  d: Double;
-
-  procedure AddFaces();
-  var
-    j: Integer;
-  begin
-    Mesh.AddPoly(poly);
-    with Pack do begin
-      for j := 1 to Line.Count-1 do begin
-        SetDelimitedText(Line[j]);
-        Mesh.AddFace(poly, Strings[0], Strings[1], Strings[2]);
-      end;
-    end;
-  end;
-
-  procedure AddWeights();
-  var
-    j: Integer;
-  begin
-    with Pack do begin
-      for j := 1 to Line.Count-1 do begin
-        SetDelimitedText(Line[j]);
-        with Bone.Weights.Add^ do begin
-          VertexIndex := ValLong(Strings[0]) + 1;
-          if TextToFloat(Strings[1], d) then
-            Weight := d;
-        end;
-      end;
-    end;
-  end;
-
-  procedure NewMesh;
-  begin
-    Mesh := AddMesh;
-  end;
-
-var
-  FStorage: PAnsiChar;
-  FLines: TStringListX;
-  v16: TVectorf16Array.P;
-
-  procedure LoadObj;
-  var
-    i, j: Integer;
-  begin
-      Vertices.Add;
-      Normals.Add;
-      TexCoords.Add;
-      for i := 0 to FLines.Count-1 do begin
-        Line.SetDelimitedText(FLines[i]);
-        if Line.Count = 0 then
-          Continue;
-        if Line[0] = 'v' then begin
-          if Mesh = nil then
-            NewMesh;
-          AddVertex(Line[1], Line[2], Line[3]);
-        end;
-        if Line[0] = 'b' then
-        begin
-          Bone := BoneByName(Line[1]);
-          for j := 0 to 15 do
-            if TextToFloat(Line[2+j], d) then
-              TVectorf16(Bone.ObjectMatrix)[j] := d;
-          Mesh.HasBones := true;
-        end;
-        if Line[0] = 'vw' then
-          AddWeights();
-        if Line[0] = 'vn' then
-          AddNormal(Line.Strings[1], Line[2], Line[3]);
-        if Line[0] = 'vt' then
-          AddTex(Line.Strings[1], Line.Strings[2]);
-        if Line[0] = 'f' then 
-          AddFaces();
-        if Line[0] = 'o' then begin
-          NewMesh;
-          Mesh.Name := Line[1];
-        end
-      end;  
-  end;
-
-  procedure LoadObjA;
-  var
-    i, j: Integer;
-  begin
-      if not FileExists(fn + 'a') then
-        Exit;
-      with TFileStream.Create(fn+'a', fmOpenRead + fmShareDenyNone) do try
-        AnsiStrings.StrDispose(FStorage);
-        FStorage := AnsiStrings.AnsiStrAlloc(Size);
-        Read(FStorage^, Size);
-        FLines.SetDelimitedText(FStorage);
-        for i := 0 to FLines.Count-1 do begin
-          Line.SetDelimitedText(FLines[i]);
-          Mesh := MeshByName(Line[1]);
-          if Mesh = nil then
-            Continue;
-          v16 := Mesh.Animations.Add;
-          for j := 0 to 15 do
-            if TextToFloat(Line[2+j], d) then
-              v16[j] := d;
-        end;
-      finally
-        Free;
-      end;
-  end;
-
-  procedure LoadObjB;
-  var
-    i, j: Integer;
-    Bone: TBoneArray.P;
-  begin
-      if not FileExists(fn + 'b') then
-        Exit;
-      with TFileStream.Create(fn+'b', fmOpenRead + fmShareDenyNone) do try
-        AnsiStrings.StrDispose(FStorage);
-        FStorage := AnsiStrings.AnsiStrAlloc(Size);
-        Read(FStorage^, Size);
-        FLines.SetDelimitedText(FStorage);
-        for i := 0 to FLines.Count-1 do begin
-          Line.SetDelimitedText(FLines[i]);
-          Bone := BoneByName(Line[1]);
-          Bone.Parent := pmodelbone(BoneByName(Line[2]));
-          v16 := Bone.Frames.Add;
-          for j := 0 to 15 do
-            if TextToFloat(Line[3+j], d) then
-              v16[j] := d;
-        end;
-      finally
-        Free;
-      end;
-  end;
-
-begin
-  Mesh := nil;
-  with TFileStream.Create(fn, fmOpenRead + fmShareDenyNone) do try
-    FStorage := AnsiStrings.AnsiStrAlloc(Size);
-    Read(FStorage^, Size);
-  finally
-    Free;
-  end;
-  FLines := TStringListX.Create;
-  try
-    FLines.Delimiter := #10;
-    FLines.SetDelimitedText(FStorage);
-    Line := TStringListX.Create;
-    Pack := TStringListX.Create;
-    try
-      Pack.Delimiter := '/';
-      LoadObj;
-      LoadObjA;
-      LoadObjB;
-    finally
-      Line.Free;
-      Pack.Free;
-    end;
-  finally
-    FLines.Free;
-    AnsiStrings.StrDispose(FStorage);
-  end;
 end;
 
 { TModelBone }
