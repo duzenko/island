@@ -8,7 +8,7 @@ type
     class constructor Create;
     class procedure Draw;
   class var
-    Model3d: TModel3D;
+    Trees, Bushes: TModel3D;
   end;
 
 implementation
@@ -18,22 +18,23 @@ implementation
 class constructor TTrees.Create;
 begin
   TThread.CreateAnonymousThread(procedure begin
-    Model3D := TModel3D.Create('..\models\trees9\untitled.obj');
+    Trees := TModel3D.Create('..\models\trees9\untitled.obj');
+    Bushes := TModel3D.Create('..\models\bushes\untitled.obj');
   end).Start;
 end;
 
 class procedure TTrees.Draw;
 var
   i, tk: Integer;
-  x, y, a, r: Single;
+  a, r: Single;
 begin
-  if Model3d = nil then
+  if Trees = nil then
     Exit;
   RandSeed := 0;
   for i := 0 to 9 do begin
     tk := i;//Random(10);
-    a := i/10*2*Pi;// random*Pi+Pi*1/4;
-    r := random*1 + 4;
+    a := {i/10*2*Pi;// }(0.9+i*0.05)*Pi;
+    r := random*3 + 22;
       glPushMatrix;
       glTranslatef(r*sin(a), r*cos(a), 0);
       glScalef(3, 3, 3);
@@ -41,8 +42,21 @@ begin
         tk := 1 shl 6 + 1
       else
         tk := 1 shl tk;
-      Model3d.TurnMeshes(tk);
-      Model3d.Draw;
+      Trees.TurnMeshes(tk);
+      Trees.Draw;
+      glPopMatrix;
+  end;
+  if Bushes = nil then
+    Exit;
+  for i := 0 to 8 do begin
+    tk := i;//Random(10);
+    a := {i/10*2*Pi;// }(0.82+i*0.05)*Pi;
+    r := random*3 + 18;
+      glPushMatrix;
+      glTranslatef(r*sin(a), r*cos(a), 0);
+      glScalef(4, 4, 4);
+      Bushes.TurnMeshes(tk);
+      Bushes.Draw;
       glPopMatrix;
   end;
 end;
@@ -50,6 +64,7 @@ end;
 initialization
 
 finalization
-  FreeAndNil(TTrees.Model3d);
+  FreeAndNil(TTrees.Trees);
+  FreeAndNil(TTrees.Bushes);
 
 end.

@@ -34,7 +34,7 @@ implementation uses
 
 procedure TForm7.FormCreate(Sender: TObject);
 begin
-//  Cursor := crNone;
+  Cursor := crNone;
   QueryPerformanceFrequency(pcf);
 end;
 
@@ -51,7 +51,7 @@ begin
   VK_ESCAPE:  Close;
   VK_F2:      glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
   VK_F3:      glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-  VK_F4:      House.DebugDraw := not House.DebugDraw;
+  VK_F4:      TModel3D.DebugDraw := not TModel3D.DebugDraw;
   VK_F5:
   begin
     Mouse.CursorPos := ClientToScreen(FMousePoint);

@@ -126,14 +126,17 @@ begin
   glViewport(0, 0, Form7.ClientHeight, Form7.ClientHeight);
   glClearColor(0.27, 0.4, 0.7, 0.0);//Light blue
   glClear(GL_COLOR_BUFFER_BIT + GL_DEPTH_BUFFER_BIT);
+  glMatrixMode(GL_PROJECTION);
   glLoadIdentity;
-  glOrtho(-1, 1, 0, 2, 0, 5);
+  glOrtho(-1, 1, -0.1, 2, -2, 2);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity;
   glEnable( GL_TEXTURE_2D);
-  TTrees.Model3d.TurnMeshes(2);
+  TTrees.Trees.TurnMeshes(2);
   glTranslatef(0, 0, 2);
   glRotatef(-90, 1, 0, 0);
 //  glScalef(2, 2, 2);
-  TTrees.Model3d.Draw;
+  TTrees.Trees.Draw;
   glDisable( GL_TEXTURE_2D);
   glFinish;
   glFlush;

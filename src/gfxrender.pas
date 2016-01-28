@@ -7,8 +7,8 @@ interface uses
 var
   glRC: THandle;
   AspectRatio: Single;
-  CameraLook: record x, y: Single end = (x: -140; y: -90);
-  House: TModel3D;
+  CameraLook: record x, y: Single end = (x: -70; y: -90);
+  Farmhouse, Oldhouse, Wagen: TModel3D;
 
 procedure Render;
 procedure CameraMoved;
@@ -32,6 +32,10 @@ end;
 
 procedure CameraMoved;
 begin
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity;
+  glFrustum(-AspectRatio, AspectRatio, -1, 1, 1, 1000);
+  glMatrixMode(GL_MODELVIEW);
   glLoadIdentity;
   glRotatef(CameraLook.y, 1, 0, 0);
   glRotatef(-CameraLook.x, 0, 0, 1);
@@ -42,7 +46,9 @@ procedure LoadModels;
 const {$J+}
   No: Integer = 0;
 begin
-  House := TModel3D.Create('..\models\farmhouse\Farmhouse OBJ.obj');
+  Farmhouse := TModel3D.Create('..\models\farmhouse\Farmhouse OBJ.obj');
+  Wagen := TModel3D.Create('..\models\wagen\untitled.obj');
+  Oldhouse := TModel3D.Create('..\models\oldhouse\untitled.obj');
   Peasant := TMilitiaAdventurer.Create();
 end;
 
@@ -53,11 +59,7 @@ begin
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_POINT_SMOOTH);
-  glMatrixMode(GL_PROJECTION);
   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 0);
-  glLoadIdentity;
-  glFrustum(-AspectRatio, AspectRatio, -1, 1, 1, 1000);
-  glMatrixMode(GL_MODELVIEW);
 end;
 
 procedure RenderSky;
@@ -116,13 +118,12 @@ begin
   RenderSky;
 
   glEnable(GL_LIGHTING);
-//  BindTexture(texHouse);
 
   glPushMatrix;
   glTranslatef(9, -5, 0);
   glScalef(0.3, 0.3, 0.3);
   glRotatef(90, 1, 0, 0);
-  House.Draw;
+  Farmhouse.Draw;
 
   glDisable( GL_TEXTURE_2D);
   glDisable(GL_LIGHTING);
@@ -130,7 +131,7 @@ begin
 
   glDepthMask(false);
   glMultMatrixf(@ShadowMatrix);
-  House.Draw;
+  Farmhouse.Draw;
   glDepthMask(true);
 
   glPopMatrix;
@@ -153,6 +154,17 @@ begin
       glVertex2i(999, 999);
   glEnd;
   glDisable (GL_BLEND);
+
+  glPushMatrix;
+  glTranslatef(4, -1, 0);
+  Wagen.Draw;
+  glPopMatrix;
+
+  glPushMatrix;
+  glTranslatef(8, 8, 0);
+  glScalef(3, 3, 3);
+  Oldhouse.Draw;
+  glPopMatrix;
 
   Peasant.Draw;
   TTrees.Draw;

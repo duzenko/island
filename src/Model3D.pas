@@ -72,6 +72,7 @@ type
     procedure Draw; overload;
     procedure Draw(frame: Integer); overload;
     procedure TurnMeshes(Flags: Cardinal);
+    function AbsSize: TGLVectorf2;
   const {$J+}
     DebugDraw: Boolean = true;
     DebugIndex: Integer = 211;
@@ -138,13 +139,13 @@ var
 begin
   SetLength(VerticesSkinned, 0);
   SetLength(VerticesSkinned, Vertices.Count);
-  for i := 0 to Bones.Count-1 do
-    for j := 0 to Bones[i].Weights.Count-1 do begin
-      vi := Bones[i].Weights[j].VertexIndex;
+  for i := 0 to Bones.Count-1 do begin
       mpwi := Bones[i].WorldMatrix(0);
       MatrixInvert(mpwi);
       mpw := Bones[i].WorldMatrix(frame);
       mt := MatrixMultiply(mpwi, mpw);
+    for j := 0 to Bones[i].Weights.Count-1 do begin
+      vi := Bones[i].Weights[j].VertexIndex;
       v1 := TGLVectorf3(VectorTransform(TAffineVector(pointer(Vertices[vi])^), mt));
       VectorScale(v1, Bones[i].Weights[j].Weight);
       VerticesSkinned[vi].v[0] := VerticesSkinned[vi].v[0] + v1[0];
@@ -152,6 +153,7 @@ begin
       VerticesSkinned[vi].v[2] := VerticesSkinned[vi].v[2] + v1[2];
       VerticesSkinned[vi].used := true;
     end;
+  end;
 end;
 
 procedure TModel3D.Draw(frame: Integer);
@@ -284,7 +286,18 @@ begin
   OutputDebugString(PWideChar(StringReplace(s, #13#10, '', [rfReplaceAll])));
 end;
 
-  function TModel3D.AddMesh;
+function TModel3D.AbsSize: TGLVectorf2;
+var
+  k: Integer;
+begin
+  Result[0] := 0;
+  for k := 0 to Vertices.Count-1 do begin
+    if Abs(Vertices[k][0]) > result[0] then
+      Result[0] := Abs(Vertices[k][0]);
+  end;
+end;
+
+function TModel3D.AddMesh;
   begin
     SetLength(Meshes, Length(Meshes)+1);
     Result := @Meshes[High(Meshes)];

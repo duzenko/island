@@ -271,7 +271,7 @@ var
           AddTex(Line.Strings[1], Line.Strings[2]);
         if Line[0] = 'f' then
           AddFaces();
-        if Line[0] = 'o' then begin
+        if (Line[0] = 'o') or (Line[0] = 'g') then begin
           NewMesh;
           Mesh.Name := Line.WideStrings[1];
         end;
