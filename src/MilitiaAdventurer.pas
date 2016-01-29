@@ -27,7 +27,7 @@ var
   Peasant: TMilitiaAdventurer;
 
 implementation uses
-  DateUtils, Khrono, Obstacles;
+  DateUtils, Khrono, Obstacles, shaders;
 
 type
   TMesh = (Body, Sheat, Purse, Shield, Sword1, LegBag,
@@ -167,7 +167,7 @@ begin
   glTranslatef(Location.x, Location.y, Location.z);
   if Look.Normalise then begin
     M.CalcTransformationMatrix2(tvector.Create(0, -1, 0), Look);
-    glMultMatrixf(@M);
+    glMultMatrixf(M);
   end;
 //  glRotatef(-180, 0, 0, 1);
   Model3d.Draw(frame - 1);

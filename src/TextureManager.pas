@@ -34,10 +34,11 @@ begin
       TThread.Synchronize(nil, procedure
       begin
         glBindTexture(GL_TEXTURE_2D, Texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, 1);
+//        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, 1);
    //      gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,
   //                           GL_BGR, GL_UNSIGNED_BYTE, ScanLine[Height-1]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_BGR, GL_UNSIGNED_BYTE, ScanLine[Height-1]);
+        glGenerateMipmap(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, @aniso);

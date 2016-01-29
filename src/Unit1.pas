@@ -28,10 +28,11 @@ type
 
 var
   Form1: TForm1;
+  Dbg1: Integer;
+  Dbg2: Single;
 
 implementation uses
-  Unit7, Khrono, gfxrender, Model3D, dbxjson, StrUtils, MilitiaAdventurer,
-  Trees;
+  Unit7, Khrono, gfxrender, Model3D, dbxjson, StrUtils, MilitiaAdventurer, shaders;
 
 {$R *.dfm}
 
@@ -126,17 +127,17 @@ begin
   glViewport(0, 0, Form7.ClientHeight, Form7.ClientHeight);
   glClearColor(0.27, 0.4, 0.7, 0.0);//Light blue
   glClear(GL_COLOR_BUFFER_BIT + GL_DEPTH_BUFFER_BIT);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity;
-  glOrtho(-1, 1, -0.1, 2, -2, 2);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity;
+//  glMatrixMode(GL_PROJECTION);
+  LoadIdentity;
+//  glOrtho(-1, 1, -0.1, 2, -2, 2);
+//  glMatrixMode(GL_MODELVIEW);
+  LoadIdentity;
   glEnable( GL_TEXTURE_2D);
-  TTrees.Trees.TurnMeshes(2);
+//  TTrees.Trees.TurnMeshes(2);
   glTranslatef(0, 0, 2);
   glRotatef(-90, 1, 0, 0);
 //  glScalef(2, 2, 2);
-  TTrees.Trees.Draw;
+//  TTrees.Trees.Draw;
   glDisable( GL_TEXTURE_2D);
   glFinish;
   glFlush;
@@ -156,7 +157,7 @@ begin
   with ValueListEditor1.Strings do begin
     ValueFromIndex[0] := TimeToStr(Khrono.Time);
     ValueFromIndex[1] := Format('%d ms', [frametime]);
-    ValueFromIndex[2] := Format('%d/%d', [tmodel3d.DebugIndex, 1{High(Peasant)}]);
+    ValueFromIndex[2] := Format('%d %f', [Dbg1, Dbg2]);
     ValueFromIndex[3] := Format('%f', [sunpos.x]);
     ValueFromIndex[4] := Format('%f', [sunpos.z]);
   end;

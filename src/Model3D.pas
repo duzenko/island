@@ -1,8 +1,8 @@
 unit Model3D;
 
 interface uses
-  Windows, SysUtils, Classes, Generics.Collections, dglOpengl, MSXML2_TLB, 
-  vectors, Geometry;
+  Windows, SysUtils, Classes, Generics.Collections, dglOpengl,
+  vectors;
 
 type
   TFastArray<T> = record
@@ -79,7 +79,7 @@ type
   end;
 
 implementation uses
-  Math, Character, AnsiStrings, ActiveX, ObjLoader, TextureManager;
+  Math, Character, AnsiStrings, ActiveX, ObjLoader, TextureManager, shaders;
 
 { TVectorf3Array }
 
@@ -135,22 +135,23 @@ procedure TModel3D.CalcSkin(frame: Integer);
 var
   i, j, vi: Integer;
   mpw, mpwi, mt: TMatrix;
-  v1: TGLVectorf3;
+  v1: TVector;
 begin
   SetLength(VerticesSkinned, 0);
   SetLength(VerticesSkinned, Vertices.Count);
   for i := 0 to Bones.Count-1 do begin
       mpwi := Bones[i].WorldMatrix(0);
-      MatrixInvert(mpwi);
+      mpwi.Invert;
       mpw := Bones[i].WorldMatrix(frame);
-      mt := MatrixMultiply(mpwi, mpw);
+      mt := mpwi * mpw;
     for j := 0 to Bones[i].Weights.Count-1 do begin
       vi := Bones[i].Weights[j].VertexIndex;
-      v1 := TGLVectorf3(VectorTransform(TAffineVector(pointer(Vertices[vi])^), mt));
-      VectorScale(v1, Bones[i].Weights[j].Weight);
-      VerticesSkinned[vi].v[0] := VerticesSkinned[vi].v[0] + v1[0];
-      VerticesSkinned[vi].v[1] := VerticesSkinned[vi].v[1] + v1[1];
-      VerticesSkinned[vi].v[2] := VerticesSkinned[vi].v[2] + v1[2];
+      v1 := mt*Vertices[vi]^;
+      v1 := v1 * Bones[i].Weights[j].Weight;
+      VerticesSkinned[vi].v := TVector(VerticesSkinned[vi].v) + v1;
+//      VerticesSkinned[vi].v[0] := VerticesSkinned[vi].v[0] + v1[0];
+//      VerticesSkinned[vi].v[1] := VerticesSkinned[vi].v[1] + v1[1];
+//      VerticesSkinned[vi].v[2] := VerticesSkinned[vi].v[2] + v1[2];
       VerticesSkinned[vi].used := true;
     end;
   end;
@@ -177,8 +178,8 @@ begin
         Continue;
       Faces := Mesh.Polys[i];
       glPushMatrix;
-      glMultMatrixf(pointer(Mesh.Animations[frame]));
-      glBegin(GL_TRIANGLE_FAN);
+      glMultMatrixf(TMatrix(Mesh.Animations[frame]^));
+      {glBegin(GL_TRIANGLE_FAN);
       for j := 0 to Faces.Count-1 do begin
         vi3 := Faces.FData[j];
         glNormal3fv(pointer(Normals[vi3]));
@@ -188,7 +189,7 @@ begin
         else
           glVertex3fv(pointer(Vertices[vi3]));
       end;
-      glEnd;
+      glEnd;     }
 {      if Mesh.HasBones then begin
         glDisable(GL_DEPTH_TEST);
         glPointSize(8);
@@ -228,15 +229,10 @@ end;
 
 procedure TModel3D.DrawIndexArray(Mode: GLint; const ia: TIndexArray);
 begin
-  glDrawElements(Mode, ia.Count, GL_UNSIGNED_INT, ia.Data[0]);
-//      glBegin(GL_TRIANGLE_FAN);
-//      for j := 0 to Faces.Count-1 do begin
-//        vi3 := Faces.Data[j]^;
-//        glNormal3fv(pointer(Normals[vi3]));
-//        glTexCoord2fv(pointer(texCoords[vi3]));
-//        glVertex3fv(pointer(Vertices[vi3]));
-//      end;
-//      glEnd;
+  if ia.Count = 0 then
+    Exit;
+  glDrawArrays(Mode, ia.Data[0]^, ia.Count);
+//  glDrawElements(Mode, ia.Count, GL_UNSIGNED_INT, ia.Data[0]);
 end;
 
 procedure TModel3D.Draw;
@@ -246,12 +242,10 @@ var
 begin
   if Self = nil then
     Exit;
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glVertexPointer(3, GL_FLOAT, 0, Vertices.Data[0]);
-  glNormalPointer(GL_FLOAT, 0, Normals.Data[0]);
-    glTexCoordPointer(2, GL_FLOAT, 0, TexCoords.Data[0]);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, Vertices.Data[0]);//Vertices.Data[0]);
+//  glVertexPointer(3, GL_FLOAT, 0, Vertices.Data[0]);
+//  glNormalPointer(GL_FLOAT, 0, Normals.Data[0]);
+//  glTexCoordPointer(2, GL_FLOAT, 0, TexCoords.Data[0]);
   for k := 0{DebugIndex} to {DebugIndex{ }High(Meshes){} do begin
     Mesh := @Meshes[k];
     if Mesh.TurnedOff then
@@ -342,8 +336,8 @@ end;
 
 function TModelBone.WorldMatrix(Frame: Integer): TMatrix;
 begin
-  Result := MatrixMultiply(TMatrix(Frames[frame]^), ObjectMatrix);
-  Point := TGLVectorf3(VectorTransform(NullVector, Result));
+  Result := TMatrix(Frames[frame]^) * ObjectMatrix;
+  Point := Result * NullVector;
 end;
 
 end.

@@ -10,12 +10,12 @@ uses
   vectors in 'vectors.pas',
   Model3D in 'Model3D.pas',
   jsonhelper in 'jsonhelper.pas',
-  Model3DBlend in 'Model3DBlend.pas',
   MilitiaAdventurer in 'MilitiaAdventurer.pas',
   Obstacles in 'Obstacles.pas',
-  Trees in 'Trees.pas',
   TextureManager in 'TextureManager.pas',
-  ObjLoader in 'ObjLoader.pas';
+  ObjLoader in 'ObjLoader.pas',
+  Shadows in 'Shadows.pas',
+  shaders in 'shaders.pas';
 
 {$R *.res}
 

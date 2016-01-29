@@ -1,8 +1,6 @@
 unit Unit7;
 
-interface
-
-uses
+interface uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   gfxrender, dglOpenGL, Vcl.ExtCtrls;
@@ -34,7 +32,7 @@ implementation uses
 
 procedure TForm7.FormCreate(Sender: TObject);
 begin
-  Cursor := crNone;
+//  Cursor := crNone;
   QueryPerformanceFrequency(pcf);
 end;
 
@@ -108,7 +106,9 @@ end;
 
 procedure TForm7.Timer1Timer(Sender: TObject);
 begin
+  Timer1.Enabled := false;
   FormPaint(nil);
+  Timer1.Enabled := true;
 end;
 
 end.

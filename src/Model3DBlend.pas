@@ -1,7 +1,7 @@
 unit Model3DBlend;
 
 interface uses
-  SysUtils, Classes, System.Generics.Collections, dglOpengl, DBXJSON, JsonHelper;
+  SysUtils, Classes, System.Generics.Collections, dglOpengl;
 
 type
   TModel3DObjectType = (mtArmature, mtMesh);
@@ -38,7 +38,7 @@ type
   end;
 
 implementation uses
-  vectors;
+  vectors, shaders;
 
 { TModel3DBlend }
 
@@ -67,7 +67,7 @@ begin
   end;
 end;
 
-procedure TModel3DBlend.LoadFromFile(const fn: string);
+{procedure TModel3DBlend.LoadFromFile(const fn: string);
 var
   Bin: TMemoryStream;
   Offsets: record
@@ -102,7 +102,7 @@ var
     AddSubmeshes(meshes.Arrays['submeshes']);
   end;    }
 
-  procedure AddMeshes(meshes: TJSONArray);
+{  procedure AddMeshes(meshes: TJSONArray);
   var
     i: Integer;
     mesh: TModel3DObjectMesh;
@@ -182,7 +182,7 @@ begin
     Free;
     bin.Free;
   end;
-end;
+end;                      }
 
 { TModel3DObjectMesh }
 

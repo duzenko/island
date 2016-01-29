@@ -41,22 +41,22 @@ const
 
 procedure UISync;
 begin
-  if SunPos.z > -SunBreak then
-    glEnable(GL_LIGHT0)
-  else
-    glDisable(GL_LIGHT0);
-  if MoonPos.z > -SunBreak then
-    glEnable(GL_LIGHT1)
-  else
-    glDisable(GL_LIGHT1);
-//  if SunPos.z > 0 then begin
-    glLightfv(GL_LIGHT0, GL_POSITION, @SunPos);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, @AdjustedSunLight);
-//  end else begin
-    glLightfv(GL_LIGHT1, GL_POSITION, @MoonPos);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, @AdjustedMoonLight);
-//  end;
-  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, @AmbientLight);
+//  if SunPos.z > -SunBreak then
+//    glEnable(GL_LIGHT0)
+//  else
+//    glDisable(GL_LIGHT0);
+//  if MoonPos.z > -SunBreak then
+//    glEnable(GL_LIGHT1)
+//  else
+//    glDisable(GL_LIGHT1);
+  if SunPos.z > 0 then begin
+//    glLightfv(GL_LIGHT0, GL_POSITION, @SunPos);
+//    glLightfv(GL_LIGHT0, GL_DIFFUSE, @AdjustedSunLight);
+  end else begin
+//    glLightfv(GL_LIGHT1, GL_POSITION, @MoonPos);
+//    glLightfv(GL_LIGHT1, GL_DIFFUSE, @AdjustedMoonLight);
+  end;
+//  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, @AmbientLight);
 end;
 
 procedure TimeProc;

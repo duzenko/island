@@ -7,8 +7,9 @@ type
 //  PVector = ^TVector;
   TVector = record
     class operator Implicit(const a: TGLVectorf3): TVector;
-    class operator Negative(const a: TVector): TVector;
+    class operator Implicit(const a: TVector): TGLVectorf3;
     class operator Implicit(a: TVector): Single;
+    class operator Negative(const a: TVector): TVector;
     class operator Add(const a, b: TVector): TVector;
     class operator Subtract(const a, b: TVector): TVector;
     class operator Multiply(const a: TVector; b: Single): TVector;
@@ -25,17 +26,32 @@ type
   end;
 
   TMatrix = record
+  private
+    procedure MatrixAdjoint;
+    function  Determinant(): Single;
+    procedure Scale(Factor: Single); register;
+  const X = 0; Y = 1; Z = 2; W = 3;
+  public
+    class operator Multiply(const M1, M2: TMatrix): TMatrix;
+    class operator Multiply(const M: TMatrix; const V: TVector): TVector;
     procedure CalcTransformationMatrix(const a, b: TVector);
     procedure CalcTransformationMatrix2(const a, b: TVector);
     function Invert3: TMatrix;
+    procedure Invert;
+    function Transpose3: TMatrix;
     function Transpose: TMatrix;
     procedure Mul3(const a, b: TMatrix);
+    procedure Translate(x, y, z: Single);
+    procedure Rotate(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
     case Byte of
     0:
       (v0, v1, v2, v3: TVector);
     1:
       (v: array[0..3] of TVector);
+    2:
+      (M: array[0..3, 0..3] of Single);
   end;
+  PMatrix = ^TMatrix;
 
 function VectorMul(const v: TGLVectorf3; f: Single): TGLVectorf3;
 function VectorNew(f: Single): TGLVectorf3;
@@ -43,6 +59,7 @@ procedure VectorSlide(var v: TGLVectorf3; f: Single); overload;
 procedure VectorSlide(var v: TGLVectorf3; const f: TGLVectorf3); overload;
 
 const
+  NullVector: TVector = (w: 1);
   IdentityMatrix: TMatrix = (v:(
     (v: (1, 0, 0, 0)),
     (v: (0, 1, 0, 0)),
@@ -110,6 +127,11 @@ begin
   Result := Sqr(a.x) + Sqr(a.y) + Sqr(a.z);
   if Result > 0 then
     Result := Sqrt(Result);
+end;
+
+class operator TVector.Implicit(const a: TVector): TGLVectorf3;
+begin
+  Move(a, Result, 12);
 end;
 
 function TVector.Inside(const a, b: TVector): ShortInt;
@@ -244,6 +266,114 @@ begin
   v[1].y := v[0].x;
 end;
 
+function MatrixDetInternal(a1, a2, a3, b1, b2, b3, c1, c2, c3: Single): Single;
+
+// internal version for the determinant of a 3x3 matrix
+
+begin
+  Result := a1 * (b2 * c3 - b3 * c2) -
+            b1 * (a2 * c3 - a3 * c2) +
+            c1 * (a2 * b3 - a3 * b2);
+end;
+
+function TMatrix.Determinant: Single;
+var a1, a2, a3, a4,
+    b1, b2, b3, b4,
+    c1, c2, c3, c4,
+    d1, d2, d3, d4  : Single;
+begin
+  a1 := M[X, X];  b1 := M[X, Y];  c1 := M[X, Z];  d1 := M[X, W];
+  a2 := M[Y, X];  b2 := M[Y, Y];  c2 := M[Y, Z];  d2 := M[Y, W];
+  a3 := M[Z, X];  b3 := M[Z, Y];  c3 := M[Z, Z];  d3 := M[Z, W];
+  a4 := M[W, X];  b4 := M[W, Y];  c4 := M[W, Z];  d4 := M[W, W];
+
+  Result := a1 * MatrixDetInternal(b2, b3, b4, c2, c3, c4, d2, d3, d4) -
+            b1 * MatrixDetInternal(a2, a3, a4, c2, c3, c4, d2, d3, d4) +
+            c1 * MatrixDetInternal(a2, a3, a4, b2, b3, b4, d2, d3, d4) -
+            d1 * MatrixDetInternal(a2, a3, a4, b2, b3, b4, c2, c3, c4);
+end;
+
+procedure TMatrix.MatrixAdjoint();
+
+// Adjoint of a 4x4 matrix - used in the computation of the inverse
+// of a 4x4 matrix
+
+var a1, a2, a3, a4,
+    b1, b2, b3, b4,
+    c1, c2, c3, c4,
+    d1, d2, d3, d4: Single;
+
+
+begin
+    a1 :=  M[X, X]; b1 :=  M[X, Y];
+    c1 :=  M[X, Z]; d1 :=  M[X, W];
+    a2 :=  M[Y, X]; b2 :=  M[Y, Y];
+    c2 :=  M[Y, Z]; d2 :=  M[Y, W];
+    a3 :=  M[Z, X]; b3 :=  M[Z, Y];
+    c3 :=  M[Z, Z]; d3 :=  M[Z, W];
+    a4 :=  M[W, X]; b4 :=  M[W, Y];
+    c4 :=  M[W, Z]; d4 :=  M[W, W];
+
+    // row column labeling reversed since we transpose rows & columns
+    M[X, X] :=  MatrixDetInternal(b2, b3, b4, c2, c3, c4, d2, d3, d4);
+    M[Y, X] := -MatrixDetInternal(a2, a3, a4, c2, c3, c4, d2, d3, d4);
+    M[Z, X] :=  MatrixDetInternal(a2, a3, a4, b2, b3, b4, d2, d3, d4);
+    M[W, X] := -MatrixDetInternal(a2, a3, a4, b2, b3, b4, c2, c3, c4);
+
+    M[X, Y] := -MatrixDetInternal(b1, b3, b4, c1, c3, c4, d1, d3, d4);
+    M[Y, Y] :=  MatrixDetInternal(a1, a3, a4, c1, c3, c4, d1, d3, d4);
+    M[Z, Y] := -MatrixDetInternal(a1, a3, a4, b1, b3, b4, d1, d3, d4);
+    M[W, Y] :=  MatrixDetInternal(a1, a3, a4, b1, b3, b4, c1, c3, c4);
+
+    M[X, Z] :=  MatrixDetInternal(b1, b2, b4, c1, c2, c4, d1, d2, d4);
+    M[Y, Z] := -MatrixDetInternal(a1, a2, a4, c1, c2, c4, d1, d2, d4);
+    M[Z, Z] :=  MatrixDetInternal(a1, a2, a4, b1, b2, b4, d1, d2, d4);
+    M[W, Z] := -MatrixDetInternal(a1, a2, a4, b1, b2, b4, c1, c2, c4);
+
+    M[X, W] := -MatrixDetInternal(b1, b2, b3, c1, c2, c3, d1, d2, d3);
+    M[Y, W] :=  MatrixDetInternal(a1, a2, a3, c1, c2, c3, d1, d2, d3);
+    M[Z, W] := -MatrixDetInternal(a1, a2, a3, b1, b2, b3, d1, d2, d3);
+    M[W, W] :=  MatrixDetInternal(a1, a2, a3, b1, b2, b3, c1, c2, c3);
+end;
+
+procedure TMatrix.Scale(Factor: Single); register;
+
+// multiplies all elements of a 4x4 matrix with a factor
+
+var I, J: Integer;
+
+begin
+  for I := 0 to 3 do
+    for J := 0 to 3 do M[I, J] := M[I, J] * Factor;
+end;
+
+const
+  EPSILON  = 1e-100;
+  EPSILON2 = 1e-50;
+procedure TMatrix.Translate(x, y, z: Single);
+var
+  tm: TMatrix;
+begin
+  tm := IdentityMatrix;
+  tm.M[3, 0] := x;
+  tm.M[3, 1] := y;
+  tm.M[3, 2] := z;
+  self := Self * tm;
+end;
+
+procedure TMatrix.Invert;
+var Det: Single;
+
+begin
+  Det := Determinant();
+  if Abs(Det) < EPSILON then Self := IdentityMatrix
+                        else
+  begin
+    MatrixAdjoint();
+    Scale(1 / Det);
+  end;
+end;
+
 function TMatrix.Invert3;
 var
   det: Single;
@@ -285,7 +415,52 @@ begin
     end;
 end;
 
+class operator TMatrix.Multiply(const M: TMatrix; const V: TVector): TVector;
+begin
+  Result.v[X] := V.v[X] * M.M[X, X] + V.v[Y] * M.M[Y, X] + V.v[Z] * M.M[Z, X] + M.M[W, X];
+  Result.v[Y] := V.v[X] * M.M[X, Y] + V.v[Y] * M.M[Y, Y] + V.v[Z] * M.M[Z, Y] + M.M[W, Y];
+  Result.v[Z] := V.v[X] * M.M[X, Z] + V.v[Y] * M.M[Y, Z] + V.v[Z] * M.M[Z, Z] + M.M[W, Z];
+  Result.v[W] := V.v[X] * M.M[X, W] + V.v[Y] * M.M[Y, W] + V.v[Z] * M.M[Z, W] + M.M[W, W];
+end;
+
+procedure TMatrix.Rotate(angle, x, y, z: GLfloat);
+var
+  rm: TMatrix;
+  s, c: Double;
+begin
+  SineCosine(angle/180*Pi, s, c);
+  rm := IdentityMatrix;
+  rm.v[0] := TVector.Create(c + x*x*(1-c), x*y*(1-c)+z*s, z*x*(1-c)-y*s, 0);
+  rm.v[1] := TVector.Create(x*y*(1-c)-z*s, c + y*y*(1-c), z*y*(1-c)+x*s, 0);
+  rm.v[2] := TVector.Create(x*z*(1-c)+y*s, z*y*(1-c)-x*s, c + z*z*(1-c), 0);
+  self := Self * rm;
+end;
+
+class operator TMatrix.Multiply(const M1, M2: TMatrix): TMatrix;
+var I, J: Integer;
+begin
+  for I := 0 to 3 do
+    for J := 0 to 3 do
+      Result.M[I, J] :=
+                  M1.M[X, I] * M2.M[J, X] +
+                  M1.M[Y, I] * M2.M[J, Y] +
+                  M1.M[Z, I] * M2.M[J, Z] +
+                  M1.M[W, I] * M2.M[J, W];
+{                  M1.M[I, X] * M2.M[X, J] +
+                  M1.M[I, Y] * M2.M[Y, J] +
+                  M1.M[I, Z] * M2.M[Z, J] +
+                  M1.M[I, W] * M2.M[W, J];{}
+end;
+
 function TMatrix.Transpose: TMatrix;
+begin
+  Result.v0 := TVector.Create(v0.x, v1.x, v2.x, v3.x);
+  Result.v1 := TVector.Create(v0.y, v1.y, v2.y, v3.y);
+  Result.v2 := TVector.Create(v0.z, v1.z, v2.z, v3.z);
+  Result.v3 := TVector.Create(v0.w, v1.w, v2.w, v3.w);
+end;
+
+function TMatrix.Transpose3: TMatrix;
 begin
   Result.v0 := TVector.Create(v0.x, v1.x, v2.x);
   Result.v1 := TVector.Create(v0.y, v1.y, v2.y);
