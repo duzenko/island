@@ -11,7 +11,7 @@ procedure LoadIdentity;
 procedure glPushMatrix;
 procedure glPopMatrix;
 procedure glMultMatrixf(const M: TMatrix);
-procedure Frustum(left: GLdouble; right: GLdouble; bottom: GLdouble; top: GLdouble; zNear: GLdouble; zFar: GLdouble);
+procedure Frustum(fov, aspect, near: Single);
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
 
 implementation
@@ -46,19 +46,17 @@ begin
   UpdateShaderMatrix;
 end;
 
-procedure Frustum(left: GLdouble; right: GLdouble; bottom: GLdouble; top: GLdouble; zNear: GLdouble; zFar: GLdouble);
+procedure Frustum(fov, aspect, near: Single);
 var
   m: TMatrix;
 begin
   m := IdentityMatrix;
+  m.M[0, 0] := 1/(fov*aspect);
+  m.M[1, 1] := 1/fov;
   m.M[2, 2] := 0;
-  m.M[2, 3] := 1;
-  m.M[3, 2] := -1;
-{  m.M[2, 2] := -10.1/9.9;
-  m.M[3, 2] := -1;
-  m.M[2, 3] := -2/9.9;}
-
-  m.M[3, 3] := 0;
+  m.M[3, 2] := -near;
+  m.M[2, 3] := -1;
+  m.M[3, 3] := -near;
   MatrixStack.Peek^ := MatrixStack.Peek^ * m;
   UpdateShaderMatrix;
 end;
@@ -77,11 +75,13 @@ end;
 
 procedure glScalef(f: Single);
 begin
+  glScalef(f, f, f);
 end;
 
 procedure glScalef(x, y, z: Single);
 begin
-
+  MatrixStack.Peek.Scale(x, y, z);
+  UpdateShaderMatrix;
 end;
 
 procedure glPushMatrix;
@@ -89,6 +89,8 @@ var
   M: PMatrix;
 begin
   New(M);
+  if MatrixStack.Count > 0 then
+    M^ := MatrixStack.Peek^;
   MatrixStack.Push(M);
 end;
 
@@ -99,6 +101,8 @@ end;
 
 procedure glMultMatrixf(const M: TMatrix);
 begin
+  MatrixStack.Peek^ := MatrixStack.Peek^ * M;
+  UpdateShaderMatrix;
 end;
 
 function GetInfoLog(glObject : glHandle) : AnsiString;
@@ -197,7 +201,7 @@ end;
 initialization
   MatrixStack := TMatrixStack.Create();
   glPushMatrix;
-  LoadIdentity;
+  LoadIdentity
 
 finalization
   glPopMatrix;

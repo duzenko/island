@@ -1,13 +1,15 @@
 #version 130 
 
-in vec3 vertexPosition_modelspace;
 uniform mat4 mvp;
 
-out vec4 pos;
+in vec3 vpos;
+in vec2 vtex;
 
- void main() {
+out vec4 fpos;
+out vec2 ftex;
 
-  pos = mvp*vec4(vertexPosition_modelspace,1);
-  gl_Position = pos;
-
- }
+void main() {
+  ftex = vtex;
+  fpos = mvp*vec4(vpos, 1);
+  gl_Position = fpos;
+}

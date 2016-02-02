@@ -11,7 +11,8 @@ type
     Trees, Bushes: TModel3D;
   end;
 
-implementation
+implementation uses
+  Shaders;
 
 { TTrees }
 
@@ -24,40 +25,46 @@ begin
 end;
 
 class procedure TTrees.Draw;
+
+  procedure DrawRandom(m: TModel3D);
+  var
+    a, r: Single;
+    i: Integer;
+  begin
+    for i := 1 to 5 do begin
+      a := (Random*0.8+0.4)*Pi;
+      r := random*99 + 22;
+//    a := {i/10*2*Pi;// }(0.9+i*0.05)*Pi;
+//    r := random*3 + 22;
+      glPushMatrix;
+      glTranslatef(r*sin(a), r*cos(a), 0);
+      glScalef(4, 4, 4);
+      m.Draw;
+      glPopMatrix;
+    end;
+  end;
+
 var
   i, tk: Integer;
-  a, r: Single;
 begin
   if Trees = nil then
     Exit;
   RandSeed := 0;
   for i := 0 to 9 do begin
     tk := i;//Random(10);
-    a := {i/10*2*Pi;// }(0.9+i*0.05)*Pi;
-    r := random*3 + 22;
-      glPushMatrix;
-      glTranslatef(r*sin(a), r*cos(a), 0);
-      glScalef(3, 3, 3);
       if tk = 0 then
         tk := 1 shl 6 + 1
       else
         tk := 1 shl tk;
       Trees.TurnMeshes(tk);
-      Trees.Draw;
-      glPopMatrix;
+      DrawRandom(Trees);
   end;
   if Bushes = nil then
     Exit;
   for i := 0 to 8 do begin
-    tk := i;//Random(10);
-    a := {i/10*2*Pi;// }(0.82+i*0.05)*Pi;
-    r := random*3 + 18;
-      glPushMatrix;
-      glTranslatef(r*sin(a), r*cos(a), 0);
-      glScalef(4, 4, 4);
+    tk := 1 shl i;//Random(10);
       Bushes.TurnMeshes(tk);
-      Bushes.Draw;
-      glPopMatrix;
+      DrawRandom(Bushes);
   end;
 end;
 

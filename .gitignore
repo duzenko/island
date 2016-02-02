@@ -9,3 +9,4 @@ dcuWin32/
 *.bin
 dcuWin64/
 binWin64/
+shaders/__history/

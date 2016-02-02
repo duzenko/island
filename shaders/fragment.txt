@@ -1,10 +1,13 @@
 #version 130 
 
-in vec4 pos;
- out vec3 color;
+uniform sampler2D texture;
 
- void main(){
+in vec4 fpos;
+in vec2 ftex;
 
-   color = pos.xyz;
+out vec3 color;
 
- }
+void main(){
+  color = texture2D(texture, ftex).rgb;
+  //pos.xyz;
+}

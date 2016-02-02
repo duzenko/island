@@ -61,7 +61,7 @@ type
   public
     TexCoords: TFastArray<TGLVectorf2>;
     Vertices, Normals: TFastArray<TGLVectorf3>;
-    VerticesSkinned: array of record v: TGLVectorf3; used: Boolean end;
+    VerticesSkinned: array of TGLVectorf3;
     Meshes: array of TModelMesh;
     Bones: TBoneArray;
     MtlStyles: TStringList;
@@ -136,38 +136,42 @@ var
   i, j, vi: Integer;
   mpw, mpwi, mt: TMatrix;
   v1: TVector;
+  used: array of Boolean;
 begin
-  SetLength(VerticesSkinned, 0);
   SetLength(VerticesSkinned, Vertices.Count);
+  ZeroMemory(VerticesSkinned, Vertices.Count*12);
+  SetLength(used, Vertices.Count);
   for i := 0 to Bones.Count-1 do begin
       mpwi := Bones[i].WorldMatrix(0);
       mpwi.Invert;
       mpw := Bones[i].WorldMatrix(frame);
-      mt := mpwi * mpw;
+      mt := mpw*mpwi;
     for j := 0 to Bones[i].Weights.Count-1 do begin
       vi := Bones[i].Weights[j].VertexIndex;
       v1 := mt*Vertices[vi]^;
       v1 := v1 * Bones[i].Weights[j].Weight;
-      VerticesSkinned[vi].v := TVector(VerticesSkinned[vi].v) + v1;
-//      VerticesSkinned[vi].v[0] := VerticesSkinned[vi].v[0] + v1[0];
-//      VerticesSkinned[vi].v[1] := VerticesSkinned[vi].v[1] + v1[1];
-//      VerticesSkinned[vi].v[2] := VerticesSkinned[vi].v[2] + v1[2];
-      VerticesSkinned[vi].used := true;
+      VerticesSkinned[vi] := TVector(VerticesSkinned[vi]) + v1;
+      used[vi] := true;
     end;
   end;
+  for i := 0 to Vertices.Count-1 do
+    if not used[i] then
+      VerticesSkinned[i] := Vertices[i]^;
 end;
 
 procedure TModel3D.Draw(frame: Integer);
 var
-  i, j, k: Integer;
-  vi3: Integer;
+  i, k: Integer;
+//  vi3: Integer;
 //  vi3: TIndexVector;
   Mesh: PModelMesh;
-  Faces: TFaces.P;
+  Faces: PIndexArray;
 begin
   if Self = nil then
     Exit;
   CalcSkin(frame);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, VerticesSkinned);//Vertices.Data[0]);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, TexCoords.Data[0]);//Vertices.Data[0]);
   for k := 0{DebugIndex} to {DebugIndex{ }High(Meshes){} do begin
     Mesh := @Meshes[k];
     if Mesh.TurnedOff then
@@ -176,9 +180,10 @@ begin
     for i := 0 to Mesh.Polys.Count-1 do begin
       if frame >= Mesh.Animations.Count then
         Continue;
-      Faces := Mesh.Polys[i];
+      Faces := PIndexArray(Mesh.Polys[i]);
       glPushMatrix;
       glMultMatrixf(TMatrix(Mesh.Animations[frame]^));
+      DrawIndexArray(GL_TRIANGLE_FAN, Faces^);
       {glBegin(GL_TRIANGLE_FAN);
       for j := 0 to Faces.Count-1 do begin
         vi3 := Faces.FData[j];
@@ -243,6 +248,7 @@ begin
   if Self = nil then
     Exit;
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, Vertices.Data[0]);//Vertices.Data[0]);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, TexCoords.Data[0]);//Vertices.Data[0]);
 //  glVertexPointer(3, GL_FLOAT, 0, Vertices.Data[0]);
 //  glNormalPointer(GL_FLOAT, 0, Normals.Data[0]);
 //  glTexCoordPointer(2, GL_FLOAT, 0, TexCoords.Data[0]);
@@ -316,16 +322,6 @@ begin
   Poly := pointer(Polys.Add);
 end;
 
-//procedure TModelMesh.AddFace(poly: PIndexArray; s1, s2, s3: PAnsiChar);
-//var
-//  v: TIndexVector;
-//begin
-//  v[0] := ValLong(s1);
-//  v[1] := ValLong(s2);
-//  v[2] := ValLong(s3);
-//  poly.Add(v);
-//end;
-
 procedure TModel3D.LoadFromFile(const fn: string);
 begin
   if ExtractFileExt(fn) = '.obj' then
@@ -336,7 +332,7 @@ end;
 
 function TModelBone.WorldMatrix(Frame: Integer): TMatrix;
 begin
-  Result := TMatrix(Frames[frame]^) * ObjectMatrix;
+  Result := ObjectMatrix*TMatrix(Frames[frame]^);
   Point := Result * NullVector;
 end;
 

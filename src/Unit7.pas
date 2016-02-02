@@ -32,7 +32,7 @@ implementation uses
 
 procedure TForm7.FormCreate(Sender: TObject);
 begin
-//  Cursor := crNone;
+  Cursor := crNone;
   QueryPerformanceFrequency(pcf);
 end;
 

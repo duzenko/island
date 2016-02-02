@@ -29,7 +29,9 @@ type
   private
     procedure MatrixAdjoint;
     function  Determinant(): Single;
-    procedure Scale(Factor: Single); register;
+    procedure Scale(Factor: Single); overload;
+    function GetElement(i, j: Integer): Single;
+    procedure SetElement(i, j: Integer; const Value: Single);
   const X = 0; Y = 1; Z = 2; W = 3;
   public
     class operator Multiply(const M1, M2: TMatrix): TMatrix;
@@ -41,8 +43,11 @@ type
     function Transpose3: TMatrix;
     function Transpose: TMatrix;
     procedure Mul3(const a, b: TMatrix);
+    function MultiplyRev(const M2: TMatrix): TMatrix;
     procedure Translate(x, y, z: Single);
+    procedure Scale(x, y, z: Single); overload;
     procedure Rotate(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
+    property Elements[i, j: Integer]: Single read GetElement write SetElement; default;
     case Byte of
     0:
       (v0, v1, v2, v3: TVector);
@@ -67,7 +72,8 @@ const
     (v: (0, 0, 0, 1))
   ));
 
-implementation
+implementation uses
+  Math;
 
 function VectorNew(f: Single): TGLVectorf3;
 begin
@@ -293,6 +299,11 @@ begin
             d1 * MatrixDetInternal(a2, a3, a4, b2, b3, b4, c2, c3, c4);
 end;
 
+function TMatrix.GetElement(i, j: Integer): Single;
+begin
+  Result := M[i, j];
+end;
+
 procedure TMatrix.MatrixAdjoint();
 
 // Adjoint of a 4x4 matrix - used in the computation of the inverse
@@ -420,20 +431,52 @@ begin
   Result.v[X] := V.v[X] * M.M[X, X] + V.v[Y] * M.M[Y, X] + V.v[Z] * M.M[Z, X] + M.M[W, X];
   Result.v[Y] := V.v[X] * M.M[X, Y] + V.v[Y] * M.M[Y, Y] + V.v[Z] * M.M[Z, Y] + M.M[W, Y];
   Result.v[Z] := V.v[X] * M.M[X, Z] + V.v[Y] * M.M[Y, Z] + V.v[Z] * M.M[Z, Z] + M.M[W, Z];
-  Result.v[W] := V.v[X] * M.M[X, W] + V.v[Y] * M.M[Y, W] + V.v[Z] * M.M[Z, W] + M.M[W, W];
+  Result.v[W] := V.v[X] * M.M[X, W] + V.v[Y] * M.M[Y, W] + V.v[Z] * M.M[Z, W] + M.M[W, W];{}
+end;
+
+function TMatrix.MultiplyRev(const M2: TMatrix): TMatrix;
+var I, J: Integer;
+begin
+  for I := 0 to 3 do
+    for J := 0 to 3 do
+      Result.M[I, J] :=
+                  M[X, I] * M2.M[J, X] +
+                  M[Y, I] * M2.M[J, Y] +
+                  M[Z, I] * M2.M[J, Z] +
+                  M[W, I] * M2.M[J, W];
+{                  M[I, X] * M2.M[X, J] +
+                  M[I, Y] * M2.M[Y, J] +
+                  M[I, Z] * M2.M[Z, J] +
+                  M[I, W] * M2.M[W, J];{}
 end;
 
 procedure TMatrix.Rotate(angle, x, y, z: GLfloat);
 var
   rm: TMatrix;
-  s, c: Double;
+  s, c: Single;
 begin
-  SineCosine(angle/180*Pi, s, c);
+  SinCos(angle/180*Pi, s, c);
   rm := IdentityMatrix;
   rm.v[0] := TVector.Create(c + x*x*(1-c), x*y*(1-c)+z*s, z*x*(1-c)-y*s, 0);
   rm.v[1] := TVector.Create(x*y*(1-c)-z*s, c + y*y*(1-c), z*y*(1-c)+x*s, 0);
   rm.v[2] := TVector.Create(x*z*(1-c)+y*s, z*y*(1-c)-x*s, c + z*z*(1-c), 0);
   self := Self * rm;
+end;
+
+procedure TMatrix.Scale(x, y, z: Single);
+var
+  tm: TMatrix;
+begin
+  tm := IdentityMatrix;
+  tm.M[0, 0] := x;
+  tm.M[1, 1] := y;
+  tm.M[2, 2] := z;
+  self := Self * tm;
+end;
+
+procedure TMatrix.SetElement(i, j: Integer; const Value: Single);
+begin
+
 end;
 
 class operator TMatrix.Multiply(const M1, M2: TMatrix): TMatrix;
@@ -442,14 +485,10 @@ begin
   for I := 0 to 3 do
     for J := 0 to 3 do
       Result.M[I, J] :=
-                  M1.M[X, I] * M2.M[J, X] +
-                  M1.M[Y, I] * M2.M[J, Y] +
-                  M1.M[Z, I] * M2.M[J, Z] +
-                  M1.M[W, I] * M2.M[J, W];
-{                  M1.M[I, X] * M2.M[X, J] +
-                  M1.M[I, Y] * M2.M[Y, J] +
-                  M1.M[I, Z] * M2.M[Z, J] +
-                  M1.M[I, W] * M2.M[W, J];{}
+                  M2.M[I, X] * M1.M[X, J] +
+                  M2.M[I, Y] * M1.M[Y, J] +
+                  M2.M[I, Z] * M1.M[Z, J] +
+                  M2.M[I, W] * M1.M[W, J];{}
 end;
 
 function TMatrix.Transpose: TMatrix;
