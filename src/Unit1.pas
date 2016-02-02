@@ -14,6 +14,7 @@ type
     MainMenu1: TMainMenu;
     Utils1: TMenuItem;
     Rendertrees1: TMenuItem;
+    Image1: TImage;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

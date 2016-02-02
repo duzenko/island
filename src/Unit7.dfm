@@ -15,7 +15,6 @@ object Form7: TForm7
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnMouseMove = FormMouseMove
-  OnPaint = FormPaint
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13

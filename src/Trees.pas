@@ -31,7 +31,7 @@ class procedure TTrees.Draw;
     a, r: Single;
     i: Integer;
   begin
-    for i := 1 to 5 do begin
+    for i := 1 to 1 do begin
       a := (Random*0.8+0.4)*Pi;
       r := random*99 + 22;
 //    a := {i/10*2*Pi;// }(0.9+i*0.05)*Pi;

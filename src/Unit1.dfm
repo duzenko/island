@@ -5,6 +5,7 @@ object Form1: TForm1
   ClientHeight = 653
   ClientWidth = 284
   Color = clBtnFace
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -13
@@ -18,6 +19,15 @@ object Form1: TForm1
   OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 16
+  object Image1: TImage
+    Left = 0
+    Top = 472
+    Width = 284
+    Height = 181
+    Align = alBottom
+    Center = True
+    Proportional = True
+  end
   object ValueListEditor1: TValueListEditor
     Left = 0
     Top = 0
@@ -45,21 +55,23 @@ object Form1: TForm1
     Left = 0
     Top = 89
     Width = 284
-    Height = 564
+    Height = 383
     Align = alClient
     Indent = 19
     TabOrder = 1
     Visible = False
     OnChange = TreeView1Change
+    ExplicitHeight = 564
   end
   object CheckListBox1: TCheckListBox
     Left = 0
     Top = 89
     Width = 284
-    Height = 564
+    Height = 383
     OnClickCheck = CheckListBox1ClickCheck
     Align = alClient
     TabOrder = 2
+    ExplicitHeight = 564
   end
   object Timer1: TTimer
     Interval = 11

@@ -12,6 +12,9 @@ procedure glPushMatrix;
 procedure glPopMatrix;
 procedure glMultMatrixf(const M: TMatrix);
 procedure Frustum(fov, aspect, near: Single);
+procedure Ortho(w, h, far: Single);
+procedure GetCurrentMatrix(out m: TMatrix);
+procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
 
 implementation
@@ -23,6 +26,19 @@ type
 var
   program_id: TGLUInt;
   MatrixStack: TMatrixStack;
+
+procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);
+var
+  texLoc: Integer;
+begin
+  texLoc := glGetUniformLocation(program_id, PAnsiChar(varName));
+  glUniformMatrix4fv(texLoc, 1, GL_FALSE, @M);
+end;
+
+procedure GetCurrentMatrix(out m: TMatrix);
+begin
+  m := MatrixStack.Peek^;
+end;
 
 procedure UpdateShaderMatrix;
 var
@@ -43,6 +59,19 @@ end;
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
 begin
   MatrixStack.Peek.Rotate(angle, x, y, z);
+  UpdateShaderMatrix;
+end;
+
+procedure Ortho(w, h, far: Single);
+var
+  m: TMatrix;
+begin
+  m := IdentityMatrix;
+  m.M[0, 0] := 1/w;
+  m.M[1, 1] := 1/h;
+  m.M[2, 2] := -1/far;
+  m.M[3, 3] := 1;
+  MatrixStack.Peek^ := MatrixStack.Peek^ * m;
   UpdateShaderMatrix;
 end;
 
@@ -140,7 +169,7 @@ end;
 function GenerateRenderPrograms: TGLUInt;
 var
 	VP, FP : TGLUInt;
-  SLen: Integer;
+  texLoc, SLen: Integer;
   RValue : TGLUInt;
   ShaderLog, VertexProgram, FragmentProgram: AnsiString;
 begin
@@ -195,6 +224,11 @@ begin
     end;
 
 	glUseProgram(Result);
+  texLoc := glGetUniformLocation(Result, 'texture');
+  glUniform1i(texLoc, 0);
+
+  texLoc := glGetUniformLocation(Result, 'shadow');
+  glUniform1i(texLoc, 1);
   program_id := Result;
 end;
 

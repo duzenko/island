@@ -59,8 +59,8 @@ var
   i: Integer;
 begin
   TThread.CreateAnonymousThread(LoadModels).Start;
-    glPointSize(7);
-    GenerateRenderPrograms;
+  glPointSize(7);
+  GenerateRenderPrograms;
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnable(GL_DEPTH_TEST);
@@ -72,14 +72,6 @@ begin
       Wheat[i, 4] := Wheat[i, 1] + random-0.5;
       Wheat[i, 5] := 0.7;
   end;
-
-//  glEnable(GL_NORMALIZE);
-//  glEnable(GL_COLOR_MATERIAL);
-//  glEnable(GL_POINT_SMOOTH);
-//  glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 0);
-//  glEnableClientState(GL_VERTEX_ARRAY);
-//  glEnableClientState(GL_NORMAL_ARRAY);
-//  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 end;
 
 procedure RenderSky;
@@ -182,13 +174,11 @@ begin
   glClearColor(skyColor*0.3, skyColor*0.3, skyColor, 1);
   glClear(GL_COLOR_BUFFER_BIT + GL_DEPTH_BUFFER_BIT);
 
-  CameraMoved;
-//  glEnable( GL_TEXTURE_2D );
-  RenderSky;
+  DrawShadow;
 
-//  glEnable(GL_LIGHTING);
+  CameraMoved;
+  RenderSky;
   RenderScene;
-//  glDisable(GL_LIGHTING);
 end;
 
 end.

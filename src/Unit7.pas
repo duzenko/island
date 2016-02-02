@@ -9,7 +9,6 @@ type
   TForm7 = class(TForm)
     Timer1: TTimer;
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FormPaint(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormCreate(Sender: TObject);
@@ -78,18 +77,6 @@ begin
 //  FormPaint(nil);
 end;
 
-procedure TForm7.FormPaint(Sender: TObject);
-var
-  pc1, pc2: Int64;
-begin
-  QueryPerformanceCounter(pc1);
-  Khrono.UISync;
-  gfxrender.Render;
-  SwapBuffers(Canvas.Handle);
-  QueryPerformanceCounter(pc2);
-  Form1.FrameTime := (pc2-pc1)*1000 div pcf;
-end;
-
 procedure TForm7.FormResize(Sender: TObject);
 begin
   if glRC = 0 then begin
@@ -105,9 +92,17 @@ begin
 end;
 
 procedure TForm7.Timer1Timer(Sender: TObject);
+var
+  pc1, pc2: Int64;
 begin
   Timer1.Enabled := false;
-  FormPaint(nil);
+  QueryPerformanceCounter(pc1);
+  Khrono.UISync;
+  gfxrender.Render;
+  SwapBuffers(Canvas.Handle);
+  QueryPerformanceCounter(pc2);
+  Form1.FrameTime := (pc2-pc1)*1000 div pcf;
+//  FormPaint(nil);
   Timer1.Enabled := true;
 end;
 
