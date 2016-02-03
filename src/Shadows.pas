@@ -11,9 +11,8 @@ implementation uses
 var
   FramebufferName: TGLuint = 0;
   depthTexture: TGLuint = 0;
-  ShadowMatrix: TMatrix;
 const
-  ShadowMapSize = 2048;
+  ShadowMapSize = 4096;
 
 procedure CheckError;
 var
@@ -43,15 +42,18 @@ begin
 //    ;
 end;
 
-procedure ShadowProj(s: Single);
+procedure Ortho(s: Single);
+var
+  M: TMatrix;
 begin
-  ShadowMatrix := IdentityMatrix;
-  ShadowMatrix[0, 0] := -1/s;
-  ShadowMatrix[1, 1] := -1/s;
-  ShadowMatrix[2, 1] := 1/s;
-  ShadowMatrix[1, 2] := -1/s;
-  ShadowMatrix[2, 2] := -1/s;
-  ShadowMatrix[3, 3] := 1;
+  M := IdentityMatrix;
+  M[0, 0] := 1/s;
+  M[1, 1] := 1/s;
+//  ShadowMatrix[2, 1] := 1/s;
+//  ShadowMatrix[1, 2] := -1/s;
+  M[2, 2] := -1/s;
+  M[3, 3] := 1;
+  glMultMatrixf(M);
 //  MatrixStack.Peek^ := MatrixStack.Peek^ * m;
 //  UpdateShaderMatrix;
 end;
@@ -61,6 +63,7 @@ var
 //  m_viewport: TRect;
   bmp: TBitmap;
   m_viewport: TRect;
+  ShadowMatrix: TMatrix;
 const
   s = 22;
 begin
@@ -75,8 +78,10 @@ begin
 //  glDepthMask(false);
   MatrixMode(false);
   LoadIdentity;
-  ShadowProj(s);
-  glMultMatrixf(ShadowMatrix);
+  Ortho(s);
+  glRotatef(-45, 1, 0, 0);
+  glRotatef(45, 0, 0, 1);
+  GetCurrentMatrix(ShadowMatrix);
 //  glRotatef(-45, 1, 0, 0);
 //  glRotatef(180, 0, 0, 1);
 //  glTranslatef(0, -s, -s);
@@ -92,10 +97,10 @@ begin
   with bmp do try
     PixelFormat := pf16bit;
     Width := ShadowMapSize;
-    Height := ShadowMapSize;
-  glActiveTexture(GL_TEXTURE1);
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, ScanLine[Height-1]);
-  glActiveTexture(GL_TEXTURE0);
+//    Height := ShadowMapSize;
+//  glActiveTexture(GL_TEXTURE1);
+//    glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, ScanLine[Height-1]);
+//  glActiveTexture(GL_TEXTURE0);
 //    SaveToFile('1.bmp');
     Form1.Image1.Picture.Graphic := bmp;
   finally
