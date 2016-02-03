@@ -157,7 +157,7 @@ begin
   glPushMatrix;
   glTranslatef(-6, -12, 0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, @Wheat);//Vertices.Data[0]);
-  glDrawArrays(GL_LINES, 0, SizeOf(Wheat) div 12);
+  glDrawArrays(GL_LINES, 0, SizeOf(Wheat) div 24);
 //  glBegin(GL_LINES);
 //  RandSeed := 0;
 //  glEnd;

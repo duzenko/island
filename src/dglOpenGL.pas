@@ -56,7 +56,7 @@
 }
 
 
-{.$define DGL_TINY_HEADER}
+{$define DGL_TINY_HEADER}
 {
   If you enable the define DGL_TINY_HEADER no function automatically will be loaded if you
   call ActivateRenderingContext. This may some bit faster and the smart linker can delete

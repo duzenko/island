@@ -83,6 +83,7 @@ begin
     Khrono.Init;
     glRC := CreateRenderingContext(Canvas.Handle, [opDoubleBuffered], 32, 32, 0, 0, 0, 0);
     ActivateRenderingContext(Canvas.Handle, glRC);
+    ReadOpenGLCore;
   end;
   gfxrender.AspectRatio := ClientWidth/ClientHeight;
   FMousePoint := Point(ClientWidth div 2, ClientHeight div 2);

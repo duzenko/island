@@ -13,7 +13,7 @@ void main(){
   color = texture2D(texture, ftex).rgb;
 //  color = sposb.xyz;
 //  color = vec3(0, 0, shadowZ);
-  if (sposb.z > shadowZ)
+  if (sposb.z < 1 && sposb.z > shadowZ)
     if (sposb.z - shadowZ < 1e-2)
       color = color*(1-(sposb.z - shadowZ)/2e-2);
     else

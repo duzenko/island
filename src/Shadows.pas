@@ -12,7 +12,7 @@ var
   FramebufferName: TGLuint = 0;
   depthTexture: TGLuint = 0;
 const
-  ShadowMapSize = 4096;
+  ShadowMapSize = 8192;
 
 procedure CheckError;
 var
@@ -32,7 +32,7 @@ begin
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, depthTexture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, ShadowMapSize, ShadowMapSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nil);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -65,7 +65,7 @@ var
   m_viewport: TRect;
   ShadowMatrix: TMatrix;
 const
-  s = 22;
+  s = 44;
 begin
   if FramebufferName = 0 then
     Init;
