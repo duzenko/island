@@ -1,7 +1,8 @@
 unit TextureManager;
 
 interface uses
-  Windows, SysUtils, Classes, dglOpengl, Graphics, Jpeg, PngImage, Generics.Collections;
+  Windows, SysUtils, Classes, dglOpengl, Graphics, Jpeg, PngImage,
+  Generics.Collections, Forms;
 
 type
   TTextureManager = class
@@ -62,6 +63,8 @@ var
   i, Texture: Integer;
 begin
   if Last = fn then
+    Exit;
+  if Application.Terminated then
     Exit;
   i := List.IndexOf(fn);
   if i < 0 then begin

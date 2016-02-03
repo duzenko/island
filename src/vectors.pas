@@ -476,7 +476,7 @@ end;
 
 procedure TMatrix.SetElement(i, j: Integer; const Value: Single);
 begin
-
+  M[i, j] := Value;
 end;
 
 class operator TMatrix.Multiply(const M1, M2: TMatrix): TMatrix;

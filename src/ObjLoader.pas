@@ -1,7 +1,7 @@
 unit ObjLoader;
 
 interface uses
-  AnsiStrings, SysUtils, Classes, Model3D, dglOpengl;
+  AnsiStrings, SysUtils, Classes, Model3D, dglOpengl, Forms;
 
 type
   TObjLoader = class helper for TModel3D
@@ -247,6 +247,8 @@ var
     ObjNormals.Count := 0;
     ReindexMap.Count := 0;
       for i := 0 to FLines.Count-1 do begin
+        if Application = nil then
+          Exit;
         Line.SetDelimitedText(FLines[i]);
         if Line.Count = 0 then
           Continue;

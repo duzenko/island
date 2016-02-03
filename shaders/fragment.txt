@@ -8,11 +8,11 @@ in vec2 ftex;
 out vec3 color;
 
 void main(){
-  vec2 sposb = spos.xy*0.5+vec2(0.5, 0.5);
+  vec3 sposb = vec3(spos.xyz*0.5+vec3(0.5, 0.5, 0.5));
   float shadowZ = texture2D(shadow, sposb.xy).z;
   color = texture2D(texture, ftex).rgb;
-  color = texture2D(shadow, sposb).rgb;
-//  color = vec3(shadowZ, spos.z, sposb.x);
-//  if (shadowZ > spos.z)
-  //  color = color*0.5;
+//  color = sposb.xyz;
+//  color = vec3(0, 0, shadowZ);
+  if (shadowZ < sposb.z - 1e-3)
+    color = color*0.5;
 }

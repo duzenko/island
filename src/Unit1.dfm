@@ -21,9 +21,9 @@ object Form1: TForm1
   TextHeight = 16
   object Image1: TImage
     Left = 0
-    Top = 472
+    Top = 376
     Width = 284
-    Height = 181
+    Height = 277
     Align = alBottom
     Center = True
     Proportional = True
@@ -55,23 +55,23 @@ object Form1: TForm1
     Left = 0
     Top = 89
     Width = 284
-    Height = 383
+    Height = 287
     Align = alClient
     Indent = 19
     TabOrder = 1
     Visible = False
     OnChange = TreeView1Change
-    ExplicitHeight = 564
+    ExplicitHeight = 383
   end
   object CheckListBox1: TCheckListBox
     Left = 0
     Top = 89
     Width = 284
-    Height = 383
+    Height = 287
     OnClickCheck = CheckListBox1ClickCheck
     Align = alClient
     TabOrder = 2
-    ExplicitHeight = 564
+    ExplicitHeight = 383
   end
   object Timer1: TTimer
     Interval = 11

@@ -1,17 +1,18 @@
 #version 130 
 
-uniform mat4 mvp;
+uniform mat4 modelMatrix, viewProjectionMatrix;
 uniform mat4 shadowMatrix;
 
 in vec3 vpos;
 in vec2 vtex;
 
-out vec4 fpos, spos;
+out vec4 fpos, spos, fnorm;
 out vec2 ftex;
 
 void main() {
   ftex = vtex;
-  spos = shadowMatrix*vec4(vpos, 1);
-  fpos = mvp*vec4(vpos, 1);
+  fpos = viewProjectionMatrix*modelMatrix*vec4(vpos, 1);
+  spos = shadowMatrix*modelMatrix*vec4(vpos, 1);
+//  fnorm = viewProjectionMatrix*modelMatrix*vec4(vnorm, 1);
   gl_Position = fpos;
 }

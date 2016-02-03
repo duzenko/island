@@ -1,7 +1,7 @@
 unit shaders;
 
 interface uses
-  SysUtils, Classes, dglOpengl, Dialogs, Vectors, Generics.Collections;
+  SysUtils, Classes, dglOpengl, Dialogs, Vectors, Generics.Collections, Forms;
 
 function GenerateRenderPrograms: TGLUInt;
 procedure glTranslatef(x, y, z: Single);
@@ -10,9 +10,9 @@ procedure glScalef(x, y, z: Single); overload;
 procedure LoadIdentity;
 procedure glPushMatrix;
 procedure glPopMatrix;
+procedure MatrixMode(model: Boolean);
 procedure glMultMatrixf(const M: TMatrix);
 procedure Frustum(fov, aspect, near: Single);
-procedure Ortho(w, h, far: Single);
 procedure GetCurrentMatrix(out m: TMatrix);
 procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
@@ -21,11 +21,26 @@ implementation
 
 type
   TMatrixStack = class(TStack<PMatrix>)
+    destructor Destroy; override;
   end;
 
 var
+  CurMatrixMode: Boolean;
   program_id: TGLUInt;
-  MatrixStack: TMatrixStack;
+  modelStack, viewProjectionStack: TMatrixStack;
+
+function MatrixStack: TMatrixStack;
+begin
+  if CurMatrixMode then
+    Result := modelStack
+  else
+    Result := viewProjectionStack;
+end;
+
+procedure MatrixMode(model: Boolean);
+begin
+  CurMatrixMode := model;
+end;
 
 procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);
 var
@@ -41,37 +56,28 @@ begin
 end;
 
 procedure UpdateShaderMatrix;
-var
-  MatrixID: GLuint;
-  M: TMatrix;
-const {$J+}
-  t: TVector = ();
+//var
+//  MatrixID: GLuint;
+//  M: TMatrix;
+//const {$J+}
+//  t: TVector = ();
 begin
   if program_id = 0 then
     Exit;
-  MatrixID := glGetUniformLocation(program_id, 'mvp');
-  M := MatrixStack.Peek^;
-  t := MatrixStack.Peek^ * NullVector;
+//  MatrixID := glGetUniformLocation(program_id, 'mvp');
+//  M := MatrixStack.Peek^;
+//  t := MatrixStack.Peek^ * NullVector;
 //  t := MatrixStack.Peek^.Transpose * NullVector;
-  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, @M);
+//  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, @M);
+  if CurMatrixMode then
+    SetShaderMatrix('modelMatrix', MatrixStack.Peek^)
+  else
+    SetShaderMatrix('viewProjectionMatrix', MatrixStack.Peek^);
 end;
 
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
 begin
   MatrixStack.Peek.Rotate(angle, x, y, z);
-  UpdateShaderMatrix;
-end;
-
-procedure Ortho(w, h, far: Single);
-var
-  m: TMatrix;
-begin
-  m := IdentityMatrix;
-  m.M[0, 0] := 1/w;
-  m.M[1, 1] := 1/h;
-  m.M[2, 2] := -1/far;
-  m.M[3, 3] := 1;
-  MatrixStack.Peek^ := MatrixStack.Peek^ * m;
   UpdateShaderMatrix;
 end;
 
@@ -126,6 +132,8 @@ end;
 procedure glPopMatrix;
 begin
   Dispose(MatrixStack.Pop);
+  if MatrixStack.Count > 0 then
+    UpdateShaderMatrix;
 end;
 
 procedure glMultMatrixf(const M: TMatrix);
@@ -208,6 +216,8 @@ begin
   	begin
     	ShaderLog := GetInfoLog(FP);
 			MessageDlg(string(ShaderLog), mtError, [mbOK], 0);
+      Application.Terminate;
+      Result := 0;
       exit;
     end;
   glAttachShader(Result, FP);
@@ -232,13 +242,26 @@ begin
   program_id := Result;
 end;
 
+{ TMatrixStack }
+
+destructor TMatrixStack.Destroy;
+begin
+  while Count > 0 do
+    Dispose(Pop);
+  inherited;
+end;
+
 initialization
-  MatrixStack := TMatrixStack.Create();
+  viewProjectionStack := TMatrixStack.Create();
   glPushMatrix;
-  LoadIdentity
+  LoadIdentity;
+  modelStack := TMatrixStack.Create();
+  MatrixMode(true);
+  glPushMatrix;
+  LoadIdentity;
 
 finalization
-  glPopMatrix;
-  FreeAndNil(MatrixStack);
+  FreeAndNil(modelStack);
+  FreeAndNil(viewProjectionStack);
 
 end.

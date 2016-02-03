@@ -2,12 +2,12 @@ unit gfxrender;
 
 interface uses
   Windows, SysUtils, Classes, Graphics, Model3D, dglOpenGL,
-  MilitiaAdventurer, Dialogs;
+  MilitiaAdventurer, Dialogs, Forms;
 
 var
   glRC: THandle;
   AspectRatio: Single;
-  CameraLook: record x, y: Single end = (x: -140; y: -90);
+  CameraLook: record x, y: Single end = (x: -130; y: -90);
   Farmhouse, Oldhouse, Wagen: TModel3D;
 
 procedure Render;
@@ -37,11 +37,14 @@ end;
 
 procedure CameraMoved;
 begin
+  MatrixMode(false);
   LoadIdentity;
   Frustum(1, AspectRatio, 0.1);
   glRotatef(CameraLook.y, 1, 0, 0);
   glRotatef(-CameraLook.x, 0, 0, 1);
-  glTranslatef(0, 0, -1.8);
+  glTranslatef(1, 0, -1.8);
+  MatrixMode(true);
+  LoadIdentity;
 end;
 
 procedure LoadModels;
@@ -54,13 +57,13 @@ begin
   Peasant := TMilitiaAdventurer.Create();
 end;
 
-procedure Init;
+function Init: Boolean;
 var
   i: Integer;
 begin
   TThread.CreateAnonymousThread(LoadModels).Start;
   glPointSize(7);
-  GenerateRenderPrograms;
+  result := GenerateRenderPrograms <> 0;
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnable(GL_DEPTH_TEST);
@@ -169,8 +172,11 @@ const {$J+}
 begin
   if not InitDone then begin
     InitDone := true;
-    Init;
+    if not Init then
+      Exit;
   end;
+  if Application.Terminated then
+    Exit;
   glClearColor(skyColor*0.3, skyColor*0.3, skyColor, 1);
   glClear(GL_COLOR_BUFFER_BIT + GL_DEPTH_BUFFER_BIT);
 
