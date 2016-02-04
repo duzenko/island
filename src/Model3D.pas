@@ -241,7 +241,6 @@ begin
   if ia.Count = 0 then
     Exit;
   glDrawArrays(Mode, ia.Data[0]^, ia.Count);
-//  glDrawElements(Mode, ia.Count, GL_UNSIGNED_INT, ia.Data[0]);
 end;
 
 procedure TModel3D.Draw;

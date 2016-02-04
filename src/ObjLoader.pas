@@ -32,9 +32,9 @@ type
     property Count: Integer read GetCount;
   end;
 
-function TextToFloat(S: PAnsiChar; var Value: Double): Boolean;
+function TextToFloat(S: PAnsiChar; var Value: Extended): Boolean;
 begin
-  Result := SysUtils.TextToFloat(string(S), Value, FormatSettings);
+  Result := AnsiStrings.TextToFloat(S, Value, fvExtended);
 end;
 
 function ValLong(S: PAnsiChar): Longint;
@@ -138,14 +138,14 @@ var
   Mesh: PModelMesh;
   Bone: TBoneArray.P;
   Line, Pack: TStringListX;
-  d: Double;
+  d: Extended;
   ObjVertices, ObjNormals: TFastArray<TGLVectorf3>;
   ObjTexcoords: TFastArray<TGLVectorf2>;
   ReindexMap: TFastArray<Integer>;
 
 procedure AddVertex(s1, s2, s3: PAnsiChar);
 var
-  f: Double;
+  f: Extended;
   v: TGLVectorf3;
 begin
   if TextToFloat(s1, f) then
@@ -159,7 +159,7 @@ end;
 
 procedure AddNormal(s1, s2, s3: PAnsiChar);
 var
-  f: Double;
+  f: Extended;
   v: TGLVectorf3;
 begin
   if TextToFloat(s1, f) then
@@ -173,7 +173,7 @@ end;
 
 procedure AddTex(s1, s2: PAnsiChar);
 var
-  f: Double;
+  f: Extended;
   v: TGLVectorf2;
 begin
   if TextToFloat(s1, f) then

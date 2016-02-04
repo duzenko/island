@@ -43,54 +43,6 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
-
-  procedure AddItem(json: TJSONValue; parent: TTreeNode; const AName: string);
-  var
-    i: Integer;
-    node: TTreeNode;
-
-{    procedure DoAdd(get: TJSONValue; const AName: string);
-    begin
-      if Get is TJSONObject then
-        AddItem(TJSONObject(Get), node, AName)
-      else
-        if Get is TJSONArray then
-          AddItem(TJSONObject(Get), node, AName)
-        else
-//        if TJSONObject(json).Value <> '' then
-    end;}
-
-  var
-    f: Boolean;
-  begin
-    node := TreeView1.Items.AddChild(parent, AName);
-    if json is TJSONArray then
-      with TJSONArray(json) do begin
-        f := false;
-        for i := 0 to Size-1 do
-          if Get(i) is TJSONObject then
-            f := true;
-        if f then
-          for i := 0 to Size-1 do
-            AddItem(Get(i), node, AName + '[' + IntToStr(i) + ']')
-        else
-          for i := 0 to Size-1 do
-            node.Text := node.Text + IfThen(i=0, ': ', ', ') + Get(i).Value;
-//          DoAdd(get(i), )
-      end
-    else
-    if json is TJSONObject then
-      with TJSONObject(json) do begin
-        for i := 0 to Size-1 do
-          AddItem(Get(i).JsonValue, node, get(i).JsonString.Value)
-//          DoAdd(get(i).JsonValue, get(i).JsonString.Value);
-      end
-    else
-      node.Text := node.Text + ': ' + json.Value;
-//      raise Exception.Create('');
-  end;
-
-
 begin
   Left := Screen.Width - Width;
   Top := 0;
@@ -161,16 +113,6 @@ begin
     ValueFromIndex[2] := Format('%d %f', [Dbg1, Dbg2]);
     ValueFromIndex[3] := Format('%f', [sunpos.x]);
     ValueFromIndex[4] := Format('%f', [sunpos.z]);
-  end;
-  if (Peasant.Model3d <> nil) and (CheckListBox1.Tag = 0) then begin
-    CheckListBox1.Tag := 1;
-    with Peasant.Model3d.Bones do
-      for i := 0 to Count-1 do begin
-        s := Data[i].Name;
-        if Data[i].Parent <> nil then
-          s := s + ' <- ' + Data[i].Parent.Name;
-        CheckListBox1.Items.Add(String(s));
-      end;
   end;
 end;
 

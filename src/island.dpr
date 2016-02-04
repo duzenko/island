@@ -15,7 +15,8 @@ uses
   TextureManager in 'TextureManager.pas',
   ObjLoader in 'ObjLoader.pas',
   Shadows in 'Shadows.pas',
-  shaders in 'shaders.pas';
+  shaders in 'shaders.pas',
+  Trees in 'Trees.pas';
 
 {$R *.res}
 

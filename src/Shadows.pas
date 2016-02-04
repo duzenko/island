@@ -56,7 +56,7 @@ end;
 
 procedure DrawShadow;
 var
-  bmp: TBitmap;
+//  bmp: TBitmap;
   m_viewport: TRect;
   ShadowMatrix: TMatrix;
 const
@@ -86,14 +86,14 @@ begin
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, m_viewport.Width, m_viewport.Height);
-  bmp := TBitmap.Create;
-  with bmp do try
-    PixelFormat := pf16bit;
-    Width := ShadowMapSize;
-    Form1.Image1.Picture.Graphic := bmp;
-  finally
-    Free;
-  end;
+//  bmp := TBitmap.Create;
+//  with bmp do try
+//    PixelFormat := pf16bit;
+//    Width := ShadowMapSize;
+//    Form1.Image1.Picture.Graphic := bmp;
+//  finally
+//    Free;
+//  end;
   CheckError;
 end;
 

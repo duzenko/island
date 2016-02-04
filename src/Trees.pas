@@ -32,8 +32,8 @@ class procedure TTrees.Draw;
     i: Integer;
   begin
     for i := 1 to 1 do begin
-      a := (Random*0.8+0.4)*Pi;
       r := random*99 + 22;
+      a := (Random*0.8+0.4)*Pi;
 //    a := {i/10*2*Pi;// }(0.9+i*0.05)*Pi;
 //    r := random*3 + 22;
       glPushMatrix;

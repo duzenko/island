@@ -17,12 +17,17 @@ type
     class operator Modulus(const a, b: TVector): TVector;
     constructor Create(a, b, c: Single; d: Single = 1);
     function Normalise: Boolean;
+    function Normalise2: Boolean;
     function Inside(const a, b: TVector): ShortInt;
     case byte of
     0:
       (x, y, z, w: Single);
     1:
-      (v: TGLVectorf4);
+      (v3: TGLVectorf3);
+//    2:
+//      (v4: TGLVectorf4);
+    3:
+      (v: array[0..3] of Single);
   end;
 
   TMatrix = record
@@ -58,7 +63,6 @@ type
   end;
   PMatrix = ^TMatrix;
 
-function VectorMul(const v: TGLVectorf3; f: Single): TGLVectorf3;
 function VectorNew(f: Single): TGLVectorf3;
 procedure VectorSlide(var v: TGLVectorf3; f: Single); overload;
 procedure VectorSlide(var v: TGLVectorf3; const f: TGLVectorf3); overload;
@@ -157,7 +161,7 @@ end;
 
 class operator TVector.Implicit(const a: TGLVectorf3): TVector;
 begin
-  Move(a, Result.v, 12);
+  Move(a, Result, 12);
   Result.w := 1;
 end;
 
@@ -200,6 +204,20 @@ begin
   Result := f > 0;
   if Result then begin
     f := 1/f;
+    x := x*f;
+    y := y*f;
+    z := z*f;
+  end;
+end;
+
+function TVector.Normalise2: Boolean;
+var
+  f: Single;
+begin
+  f := x*x+y*y;
+  Result := f > 0;
+  if Result then begin
+    f := 1/sqrt(f);
     x := x*f;
     y := y*f;
     z := z*f;

@@ -27,6 +27,7 @@ object Form1: TForm1
     Align = alBottom
     Center = True
     Proportional = True
+    Visible = False
   end
   object ValueListEditor1: TValueListEditor
     Left = 0
@@ -61,7 +62,6 @@ object Form1: TForm1
     TabOrder = 1
     Visible = False
     OnChange = TreeView1Change
-    ExplicitHeight = 383
   end
   object CheckListBox1: TCheckListBox
     Left = 0
@@ -71,7 +71,6 @@ object Form1: TForm1
     OnClickCheck = CheckListBox1ClickCheck
     Align = alClient
     TabOrder = 2
-    ExplicitHeight = 383
   end
   object Timer1: TTimer
     Interval = 11

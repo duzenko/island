@@ -1,33 +1,13 @@
 unit Khrono;
 
 interface uses
-  SysUtils, Classes, dglOpengl;
+  SysUtils, Classes, dglOpengl, vectors;
 
-const
-  DayAmbient = 0.4;
-  NightAmbient = 0.20;
-  SunLight: TGLVectorf3 = (1-DayAmbient, 1-DayAmbient, 0.9-DayAmbient);
-  MoonLight: TGLVectorf3 = (0.25-NightAmbient, 0.25-NightAmbient, 0.35-NightAmbient);
 var
   Time: TDateTime = 0.26;
   SunPos, MoonPos: record x, y, z, w: Single end;
-  SunColor: TGLVectorf4 = (1, 1, 0.9, 1);
-  MoonColor: TGLVectorf4 = (0.3, 0.3, 0.4, 1);
-  AdjustedSunLight, AdjustedMoonLight, AmbientLight: TGLVectorf3;
   SkyColor: Single;
-  ShadowMatrix: array[0..3, 0..3] of Single = (
-    (1, 0, 0, 0),
-    (0, 0, 0, 0),
-    (0, 0, 1, 0),
-    (1, 0, 0, 1)
-  );
   ShadowAngles: array[0..1] of Single;
-  SunMatrix: array[0..3, 0..3] of Single = (
-    (1, 0, 0, 0),
-    (0, 0.6, 0, 0),
-    (0, 0, 1, 0),
-    (1, 0, 0, 1)
-  );
   SunAngle: Single;
   Paused: Boolean = false;
 
@@ -35,37 +15,16 @@ procedure Init;
 procedure UISync;
 
 implementation uses
-  Math, vectors, gfxrender, unit1, shaders;
-
-const
-  SunBreak = 0.2;
+  Math, gfxrender, unit1, shaders;
 
 procedure UISync;
 begin
-//  if SunPos.z > -SunBreak then
-//    glEnable(GL_LIGHT0)
-//  else
-//    glDisable(GL_LIGHT0);
-//  if MoonPos.z > -SunBreak then
-//    glEnable(GL_LIGHT1)
-//  else
-//    glDisable(GL_LIGHT1);
-  if SunPos.z > 0 then begin
-    SetShaderVec3('sunPos', @SunPos);
-//    glLightfv(GL_LIGHT0, GL_POSITION, @SunPos);
-//    glLightfv(GL_LIGHT0, GL_DIFFUSE, @AdjustedSunLight);
-  end else begin
-    SetShaderVec3('sunPos', @MoonPos);
-//    glLightfv(GL_LIGHT1, GL_POSITION, @MoonPos);
-//    glLightfv(GL_LIGHT1, GL_DIFFUSE, @AdjustedMoonLight);
-  end;
-//  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, @AmbientLight);
+  SetShaderVec3('sunPos', @SunPos);
 end;
 
 procedure TimeProc;
 var
   s, c: Single;
-  SunEclipse: Single;
 begin
   while true do begin
     if not Paused then
@@ -79,55 +38,12 @@ begin
     SunPos.y := -MoonPos.y;
     SunPos.z := -MoonPos.z;
 
-    if SunAngle < 0.25 then
-      ShadowAngles[0] := 360*SunAngle
-    else if SunAngle < 0.5 then
-      ShadowAngles[0] := 360*SunAngle-180
-    else if SunAngle < 0.75 then
-      ShadowAngles[0] := 180-360*SunAngle
-    else
-      ShadowAngles[0] := -360*SunAngle;
-
-//    if SunPos.z > 0 then
-//      ShadowAngles[0] := -Abs(180-360*SunAngle);
-    Dbg2 := ShadowAngles[0];
-    ShadowAngles[0] := ArcCos(SunPos.z)/Pi*180;//360*SunAngle;
+    ShadowAngles[0] := ArcCos(SunPos.z)/Pi*180;
     if SunPos.z < 0 then
       ShadowAngles[0] := ShadowAngles[0] - 180;
-    ShadowAngles[1] := 180-SunAngle*360;//360*SunAngle;
+    ShadowAngles[1] := 180-SunAngle*360;
 
-    SunMatrix[0][0] := -c*0.8;
-    SunMatrix[2][0] := -s;
-    SunMatrix[0][2] := s;
-    SunMatrix[2][2] := -c*0.8;
     SkyColor := SunPos.z+0.4;
-    SunEclipse := (SunPos.z+SunBreak)/2/SunBreak;
-    if SunPos.z > -SunBreak then begin
-      if SunPos.z > SunBreak then
-        AdjustedSunLight := SunLight
-      else
-        AdjustedSunLight := VectorMul(SunLight, Power(SunEclipse, 3));
-    end;
-    if MoonPos.z > -SunBreak then begin
-      if MoonPos.z > SunBreak then
-        AdjustedMoonLight := MoonLight
-      else
-        AdjustedMoonLight := VectorMul(MoonLight, Power(1-SunEclipse, 3));
-    end;
-    if SunPos.z > SunBreak then
-      AmbientLight := VectorNew(DayAmbient)
-    else
-      if MoonPos.z > SunBreak then
-        AmbientLight := VectorNew(NightAmbient)
-      else
-        AmbientLight := VectorNew(SunEclipse*DayAmbient + (1-SunEclipse)*NightAmbient);
-    if SunPos.z > 0 then begin
-      ShadowMatrix[1][0] := -SunPos.x / SunPos.y;
-      ShadowMatrix[1][2] := SunPos.z / SunPos.y;
-    end else begin
-      ShadowMatrix[1][0] := -MoonPos.x / MoonPos.y;
-      ShadowMatrix[1][2] := MoonPos.z / MoonPos.y;
-    end;
     Sleep(1);
   end;
 end;

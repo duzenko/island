@@ -7,7 +7,7 @@ interface uses
 var
   glRC: THandle;
   AspectRatio: Single;
-  CameraLook: record x, y: Single end = (x: -130; y: -90);
+  CameraLook: record x, y: Single end = (x: -100; y: -90);
   Farmhouse, Oldhouse, Wagen: TModel3D;
 
 procedure Render;
@@ -53,7 +53,7 @@ const {$J+}
 begin
   Farmhouse := TModel3D.Create('..\models\farmhouse\untitled.obj');
   Wagen := TModel3D.Create('..\models\wagen\untitled.obj');
-//  Oldhouse := TModel3D.Create('..\models\oldhouse\untitled.obj');
+  Oldhouse := TModel3D.Create('..\models\oldhouse\untitled.obj');
   Peasant := TMilitiaAdventurer.Create();
 end;
 
@@ -67,6 +67,7 @@ begin
   glEnableVertexAttribArray(1);
 //  glEnableVertexAttribArray(2);
   glEnable(GL_DEPTH_TEST);
+//  glEnable(GL_MULTISAMPLE);
   for i := -3999 to 3999 do begin
       Wheat[i, 0] := random*9;
       Wheat[i, 1] := random*9;
@@ -139,7 +140,7 @@ begin
   glPopMatrix;
 
   glPushMatrix;
-  glTranslatef(4, 0, 0);
+  glTranslatef(5, 0, 0);
   Wagen.Draw;
   glPopMatrix;
 
@@ -177,7 +178,9 @@ begin
   glClearColor(skyColor*0.3, skyColor*0.3, skyColor, 1);
   glClear(GL_COLOR_BUFFER_BIT + GL_DEPTH_BUFFER_BIT);
 
+  TTextureManager.Disabled := true;
   DrawShadow;
+  TTextureManager.Disabled := false;
 
   CameraMoved;
   RenderSky;

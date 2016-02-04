@@ -160,16 +160,13 @@ begin
     Exit;
   with AnimationFrames[Animation] do
     frame := gettickcount div 40 mod (EndNo - StartNo) + StartNo;
-//  if T3DModel.DebugDraw then
-//    frame := T3DModel.DebugIndex+1;
   Model3d.TurnMeshes(Cardinal(cAnimationMeshes[Animation]));
   glPushMatrix;
   glTranslatef(Location.x, Location.y, Location.z);
-  if Look.Normalise then begin
+  if Look.Normalise2 then begin
     M.CalcTransformationMatrix2(tvector.Create(0, -1, 0), Look);
     glMultMatrixf(M);
   end;
-//  glRotatef(-180, 0, 0, 1);
   Model3d.Draw(frame - 1);
   glPopMatrix;
 end;

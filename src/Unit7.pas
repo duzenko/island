@@ -25,13 +25,13 @@ var
   Form7: TForm7;
 
 implementation uses
-  Math, Unit1, Khrono, Model3D;
+  Math, Unit1, Khrono, Model3D, TextureManager;
 
 {$R *.dfm}
 
 procedure TForm7.FormCreate(Sender: TObject);
 begin
-  Cursor := crNone;
+//  Cursor := crNone;
   QueryPerformanceFrequency(pcf);
 end;
 
@@ -92,17 +92,30 @@ begin
   glViewport(0, 0, ClientWidth, ClientHeight);
 end;
 
+var
+  TotalTime: Int64;
 procedure TForm7.Timer1Timer(Sender: TObject);
 var
-  pc1, pc2: Int64;
+  pc2: Int64;
+const {$J+}
+  pc1: Int64 = 0;
 begin
   Timer1.Enabled := false;
-  QueryPerformanceCounter(pc1);
+  if pc1 = 0 then begin
+    QueryPerformanceCounter(pc1);
+  end;
   Khrono.UISync;
   gfxrender.Render;
   SwapBuffers(Canvas.Handle);
   QueryPerformanceCounter(pc2);
   Form1.FrameTime := (pc2-pc1)*1000 div pcf;
+  Inc(TotalTime, Form1.FrameTime);
+  pc1 := pc2;
+  with Form1.CheckListBox1{, TTextureManager.ToLoad }do begin
+    if TotalTime < 5000 then
+      Items.Add(Format('%5d %5d', [TotalTime, Form1.FrameTime]));
+//    UnlockList;
+  end;
 //  FormPaint(nil);
   Timer1.Enabled := true;
 end;
