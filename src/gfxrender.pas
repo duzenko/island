@@ -21,7 +21,7 @@ type
   TTextureEnum = (texGrass, texSun, texMoon, texWheat);
 
 var
-  Wheat: array[-3999..3999, 0..5] of Single;
+  Wheat: array[-3999..3999, 0..15] of Single;
 
 procedure BindTexture(texEnum: TTextureEnum);
 const
@@ -64,16 +64,17 @@ begin
   TThread.CreateAnonymousThread(LoadModels).Start;
   glPointSize(7);
   result := GenerateRenderPrograms <> 0;
-  glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
+//  glEnableVertexAttribArray(2);
   glEnable(GL_DEPTH_TEST);
   for i := -3999 to 3999 do begin
       Wheat[i, 0] := random*9;
       Wheat[i, 1] := random*9;
-      Wheat[i, 2] := 0;
-      Wheat[i, 3] := Wheat[i, 0] + random-0.5;
-      Wheat[i, 4] := Wheat[i, 1] + random-0.5;
-      Wheat[i, 5] := 0.7;
+      Wheat[i, 7] := 1;
+      Wheat[i, 8] := Wheat[i, 0] + random-0.5;
+      Wheat[i, 9] := Wheat[i, 1] + random-0.5;
+      Wheat[i, 10] := 0.7;
+      Wheat[i, 15] := 1;
   end;
 end;
 
@@ -87,11 +88,12 @@ procedure RenderSky;
       +1, +1, +1, +1
     );
   begin
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16, @vdata);//Vertices.Data[0]);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, @vdata[2]);//Vertices.Data[0]);
+    SetShaderPointer('vpos', 2, 16, @vdata[0]);
+    SetShaderPointer('vtex', 2, 16, @vdata[2]);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   end;
 begin
+  SetShaderFloat('lightOverride', 1);
   glBlendFunc (GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
   glDepthMask(false);
   glEnable(GL_BLEND);
@@ -104,39 +106,40 @@ begin
   RenderSunMoon;
   glTranslatef(0, 0, -15);
   BindTexture(texSun);
+  glCullFace(GL_FRONT);
   RenderSunMoon;
+  glCullFace(GL_BACK);
   glPopMatrix;
   glDisable(GL_BLEND);
   glDepthMask(true);
   glBlendFunc (GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+  SetShaderFloat('lightOverride', 0);
 end;
 
 procedure RenderScene;
 const
-  vdata: array[0..15] of Single = (
-    -999, -999, -333, -333,
-    -999, +999, -333, +333,
-    +999, -999, +333, -333,
-    +999, +999, +333, +333
+  vdata: array[0..31] of Single = (
+    -999, -999, 0, -333, -333, 0, 0, 1,
+    +999, -999, 0, +333, -333, 0, 0, 1,
+    -999, +999, 0, -333, +333, 0, 0, 1,
+    +999, +999, 0, +333, +333, 0, 0, 1
   );
 begin
+  BindTexture(texGrass);
+  SetShaderPointer('vpos', 3, 32, @vdata[0]);
+  SetShaderPointer('vnorm', 3, 32, @vdata[5]);
+  SetShaderPointer('vtex', 2, 32, @vdata[3]);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+//  Exit;
   glPushMatrix;
   glTranslatef(9, -5, 0);
   glScalef(0.3);
   Farmhouse.Draw;
   glPopMatrix;
-//
-//  glEnable(GL_LIGHTING);
-//  glEnable( GL_TEXTURE_2D );
-  BindTexture(texGrass);
-//  glEnable (GL_BLEND);
-//  glColor3f(1, 1, 1);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16, @vdata);//Vertices.Data[0]);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, @vdata[2]);//Vertices.Data[0]);
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   glPushMatrix;
-  glTranslatef(4, -1, 0);
+  glTranslatef(4, 0, 0);
   Wagen.Draw;
   glPopMatrix;
 
@@ -149,20 +152,14 @@ begin
   Peasant.Draw;
   TTrees.Draw;
 
-//  glDisable( GL_TEXTURE_2D);
-
-//  glNormal3f(0, 0, 1);
-//  glColor3f(1, 1, 0.5);
   BindTexture(texWheat);
   glPushMatrix;
   glTranslatef(-6, -12, 0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, @Wheat);//Vertices.Data[0]);
-  glDrawArrays(GL_LINES, 0, SizeOf(Wheat) div 24);
-//  glBegin(GL_LINES);
-//  RandSeed := 0;
-//  glEnd;
+  SetShaderPointer('vpos', 3, 32, @Wheat);
+  SetShaderPointer('vtex', 2, 32, @Wheat[3]);
+  SetShaderPointer('vnorm', 3, 32, @Wheat[5]);
+  glDrawArrays(GL_LINES, 0, SizeOf(Wheat) div 64);
   glPopMatrix;
-//  glColor3f(1, 1, 1);
 end;
 
 procedure Render;

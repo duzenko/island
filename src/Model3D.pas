@@ -170,8 +170,12 @@ begin
   if Self = nil then
     Exit;
   CalcSkin(frame);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, VerticesSkinned);//Vertices.Data[0]);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, TexCoords.Data[0]);//Vertices.Data[0]);
+  SetShaderPointer('vpos', 3, 0, VerticesSkinned);
+  SetShaderPointer('vtex', 2, 0, TexCoords.Data[0]);
+  SetShaderPointer('vnorm', 3, 0, Normals.Data[0]);
+//  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, );//Vertices.Data[0]);
+//  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, Normals.Data[0]);//Vertices.Data[0]);
+//  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, TexCoords.Data[0]);//Vertices.Data[0]);
   for k := 0{DebugIndex} to {DebugIndex{ }High(Meshes){} do begin
     Mesh := @Meshes[k];
     if Mesh.TurnedOff then
@@ -247,11 +251,9 @@ var
 begin
   if Self = nil then
     Exit;
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, Vertices.Data[0]);//Vertices.Data[0]);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, TexCoords.Data[0]);//Vertices.Data[0]);
-//  glVertexPointer(3, GL_FLOAT, 0, Vertices.Data[0]);
-//  glNormalPointer(GL_FLOAT, 0, Normals.Data[0]);
-//  glTexCoordPointer(2, GL_FLOAT, 0, TexCoords.Data[0]);
+  SetShaderPointer('vpos', 3, 0, Vertices.Data[0]);
+  SetShaderPointer('vtex', 2, 0, TexCoords.Data[0]);
+  SetShaderPointer('vnorm', 3, 0, Normals.Data[0]);
   for k := 0{DebugIndex} to {DebugIndex{ }High(Meshes){} do begin
     Mesh := @Meshes[k];
     if Mesh.TurnedOff then

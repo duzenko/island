@@ -9,7 +9,7 @@ const
   SunLight: TGLVectorf3 = (1-DayAmbient, 1-DayAmbient, 0.9-DayAmbient);
   MoonLight: TGLVectorf3 = (0.25-NightAmbient, 0.25-NightAmbient, 0.35-NightAmbient);
 var
-  Time: TDateTime = 0.46;
+  Time: TDateTime = 0.26;
   SunPos, MoonPos: record x, y, z, w: Single end;
   SunColor: TGLVectorf4 = (1, 1, 0.9, 1);
   MoonColor: TGLVectorf4 = (0.3, 0.3, 0.4, 1);
@@ -21,6 +21,7 @@ var
     (0, 0, 1, 0),
     (1, 0, 0, 1)
   );
+  ShadowAngles: array[0..1] of Single;
   SunMatrix: array[0..3, 0..3] of Single = (
     (1, 0, 0, 0),
     (0, 0.6, 0, 0),
@@ -28,13 +29,13 @@ var
     (1, 0, 0, 1)
   );
   SunAngle: Single;
-  Paused: Boolean = true;
+  Paused: Boolean = false;
 
 procedure Init;
 procedure UISync;
 
 implementation uses
-  Math, vectors, gfxrender;
+  Math, vectors, gfxrender, unit1, shaders;
 
 const
   SunBreak = 0.2;
@@ -50,9 +51,11 @@ begin
 //  else
 //    glDisable(GL_LIGHT1);
   if SunPos.z > 0 then begin
+    SetShaderVec3('sunPos', @SunPos);
 //    glLightfv(GL_LIGHT0, GL_POSITION, @SunPos);
 //    glLightfv(GL_LIGHT0, GL_DIFFUSE, @AdjustedSunLight);
   end else begin
+    SetShaderVec3('sunPos', @MoonPos);
 //    glLightfv(GL_LIGHT1, GL_POSITION, @MoonPos);
 //    glLightfv(GL_LIGHT1, GL_DIFFUSE, @AdjustedMoonLight);
   end;
@@ -75,6 +78,24 @@ begin
     SunPos.x := -MoonPos.x;
     SunPos.y := -MoonPos.y;
     SunPos.z := -MoonPos.z;
+
+    if SunAngle < 0.25 then
+      ShadowAngles[0] := 360*SunAngle
+    else if SunAngle < 0.5 then
+      ShadowAngles[0] := 360*SunAngle-180
+    else if SunAngle < 0.75 then
+      ShadowAngles[0] := 180-360*SunAngle
+    else
+      ShadowAngles[0] := -360*SunAngle;
+
+//    if SunPos.z > 0 then
+//      ShadowAngles[0] := -Abs(180-360*SunAngle);
+    Dbg2 := ShadowAngles[0];
+    ShadowAngles[0] := ArcCos(SunPos.z)/Pi*180;//360*SunAngle;
+    if SunPos.z < 0 then
+      ShadowAngles[0] := ShadowAngles[0] - 180;
+    ShadowAngles[1] := 180-SunAngle*360;//360*SunAngle;
+
     SunMatrix[0][0] := -c*0.8;
     SunMatrix[2][0] := -s;
     SunMatrix[0][2] := s;

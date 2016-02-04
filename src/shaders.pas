@@ -15,6 +15,9 @@ procedure glMultMatrixf(const M: TMatrix);
 procedure Frustum(fov, aspect, near: Single);
 procedure GetCurrentMatrix(out m: TMatrix);
 procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);
+procedure SetShaderPointer(const name: AnsiString; c, s: Integer; p: Pointer);
+procedure SetShaderFloat(const name: AnsiString; f: Single);
+procedure SetShaderVec3(const name: AnsiString; v: PGLfloat);
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
 
 implementation
@@ -40,6 +43,37 @@ end;
 procedure MatrixMode(model: Boolean);
 begin
   CurMatrixMode := model;
+end;
+
+procedure SetShaderFloat(const name: AnsiString; f: Single);
+var
+  uniLoc: Integer;
+begin
+  if program_id = 0 then
+    Exit;
+  uniLoc := glGetUniformLocation(program_id, PAnsiChar(name));
+  glUniform1f(uniLoc, f);
+end;
+
+procedure SetShaderVec3(const name: AnsiString; v: PGLfloat);
+var
+  uniLoc: Integer;
+begin
+  if program_id = 0 then
+    Exit;
+  uniLoc := glGetUniformLocation(program_id, PAnsiChar(name));
+  glUniform3fv(uniLoc, 1, v);
+end;
+
+procedure SetShaderPointer(const name: AnsiString; c, s: Integer; p: Pointer);
+var
+  attrLoc: Integer;
+begin
+  attrLoc := glGetAttribLocation(program_id, PAnsiChar(name));
+  if attrLoc < 0 then
+    Exit;
+  glEnableVertexAttribArray(attrLoc);
+  glVertexAttribPointer(attrLoc, c, GL_FLOAT, GL_FALSE, s, p);
 end;
 
 procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);

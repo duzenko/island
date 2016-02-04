@@ -15,7 +15,7 @@ type
 
 implementation
 
-procedure LoadTexture(Texture: Integer; const fn: string);
+procedure LoadTexture(Texture: Integer; fn: PChar);
 var
   pic: TPicture;
   bmp: TBitmap;
@@ -49,6 +49,7 @@ begin
     bmp.Free;
     pic.Free;
   end;
+  StrDispose(fn);
 end;
 
 { TTextureManager }
@@ -72,7 +73,7 @@ begin
     glGenTextures(1, @Texture);
     List.Objects[i] := pointer(Texture);
     TThread.CreateAnonymousThread(procedure begin
-      LoadTexture(Texture, fn);
+      LoadTexture(Texture, StrNew(PChar(fn)));
     end).Start;
   end else begin
     Texture := integer(List.Objects[i]);
