@@ -3,7 +3,8 @@ unit shaders;
 interface uses
   SysUtils, Classes, dglOpengl, Dialogs, Vectors, Generics.Collections, Forms;
 
-function GenerateRenderPrograms: TGLUInt;
+function LoadGpuProgram(const Name: string): TGLUInt;
+
 procedure glTranslatef(x, y, z: Single);
 procedure glScalef(f: Single); overload;
 procedure glScalef(x, y, z: Single); overload;
@@ -19,6 +20,11 @@ procedure SetShaderPointer(const name: AnsiString; c, s: Integer; p: Pointer);
 procedure SetShaderFloat(const name: AnsiString; f: Single);
 procedure SetShaderVec3(const name: AnsiString; v: PGLfloat);
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
+procedure glCheckError;
+procedure SwitchProgram(prg: TGLuint);
+
+var
+  prgTerrain, prgObjects: TGLUInt;
 
 implementation
 
@@ -29,8 +35,8 @@ type
 
 var
   CurMatrixMode: Boolean;
-  program_id: TGLUInt;
   modelStack, viewProjectionStack: TMatrixStack;
+  ActiveProgram: TGLuint;
 
 function MatrixStack: TMatrixStack;
 begin
@@ -38,6 +44,37 @@ begin
     Result := modelStack
   else
     Result := viewProjectionStack;
+end;
+
+procedure UpdateShaderMatrix;
+begin
+  if ActiveProgram = 0 then
+    Exit;
+  if CurMatrixMode then
+    SetShaderMatrix('modelMatrix', MatrixStack.Peek^)
+  else
+    SetShaderMatrix('viewProjectionMatrix', MatrixStack.Peek^);
+end;
+
+procedure SwitchProgram(prg: TGLuint);
+begin
+  ActiveProgram := prg;
+  glUseProgram(prg);
+  CurMatrixMode := false;
+  UpdateShaderMatrix;
+  CurMatrixMode := True;
+  UpdateShaderMatrix;
+end;
+
+procedure glCheckError;
+var
+  errCode: Cardinal;
+begin
+  errCode := glGetError;
+  if errCode <> 0 then begin
+    MessageDlg(string(gluErrorString(errCode)), mtError, [mbok], 0);
+    Application.Terminate;
+  end;
 end;
 
 procedure MatrixMode(model: Boolean);
@@ -49,64 +86,51 @@ procedure SetShaderFloat(const name: AnsiString; f: Single);
 var
   uniLoc: Integer;
 begin
-  if program_id = 0 then
+  if ActiveProgram = 0 then
     Exit;
-  uniLoc := glGetUniformLocation(program_id, PAnsiChar(name));
+  uniLoc := glGetUniformLocation(ActiveProgram, PAnsiChar(name));
   glUniform1f(uniLoc, f);
+  glCheckError;
 end;
 
 procedure SetShaderVec3(const name: AnsiString; v: PGLfloat);
 var
   uniLoc: Integer;
 begin
-  if program_id = 0 then
+  if ActiveProgram = 0 then
     Exit;
-  uniLoc := glGetUniformLocation(program_id, PAnsiChar(name));
+  uniLoc := glGetUniformLocation(ActiveProgram, PAnsiChar(name));
   glUniform3fv(uniLoc, 1, v);
+  glCheckError;
 end;
 
 procedure SetShaderPointer(const name: AnsiString; c, s: Integer; p: Pointer);
 var
   attrLoc: Integer;
 begin
-  attrLoc := glGetAttribLocation(program_id, PAnsiChar(name));
+  attrLoc := glGetAttribLocation(ActiveProgram, PAnsiChar(name));
   if attrLoc < 0 then
     Exit;
-  glEnableVertexAttribArray(attrLoc);
-  glVertexAttribPointer(attrLoc, c, GL_FLOAT, GL_FALSE, s, p);
+  if p = nil then
+    glDisableVertexAttribArray(attrLoc)
+  else begin
+    glEnableVertexAttribArray(attrLoc);
+    glVertexAttribPointer(attrLoc, c, GL_FLOAT, GL_FALSE, s, p);
+  end;
 end;
 
 procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);
 var
   texLoc: Integer;
 begin
-  texLoc := glGetUniformLocation(program_id, PAnsiChar(varName));
+  texLoc := glGetUniformLocation(ActiveProgram, PAnsiChar(varName));
   glUniformMatrix4fv(texLoc, 1, GL_FALSE, @M);
+  glCheckError;
 end;
 
 procedure GetCurrentMatrix(out m: TMatrix);
 begin
   m := MatrixStack.Peek^;
-end;
-
-procedure UpdateShaderMatrix;
-//var
-//  MatrixID: GLuint;
-//  M: TMatrix;
-//const {$J+}
-//  t: TVector = ();
-begin
-  if program_id = 0 then
-    Exit;
-//  MatrixID := glGetUniformLocation(program_id, 'mvp');
-//  M := MatrixStack.Peek^;
-//  t := MatrixStack.Peek^ * NullVector;
-//  t := MatrixStack.Peek^.Transpose * NullVector;
-//  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, @M);
-  if CurMatrixMode then
-    SetShaderMatrix('modelMatrix', MatrixStack.Peek^)
-  else
-    SetShaderMatrix('viewProjectionMatrix', MatrixStack.Peek^);
 end;
 
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
@@ -208,9 +232,9 @@ begin
     end;
 end;
 
-function GenerateRenderPrograms: TGLUInt;
+function LoadGpuProgram(const Name: string): TGLUInt;
 var
-	VP, FP : TGLUInt;
+	VP, FP: TGLUInt;
   texLoc, SLen: Integer;
   RValue : TGLUInt;
   ShaderLog, VertexProgram, FragmentProgram: AnsiString;
@@ -218,18 +242,24 @@ begin
 	Result := glCreateProgram;
 
 	VP := glCreateShader(GL_VERTEX_SHADER);
+//	GP := glCreateShader(GL_GEOMETRY_SHADER);
   FP := glCreateShader(GL_FRAGMENT_SHADER);
 
   with TStringList.Create() do try
-    LoadFromFile('..\shaders\vertex.txt');
+    LoadFromFile('..\shaders\' + Name + '.vs');
     VertexProgram := ansistring(text);
-    LoadFromFile('..\shaders\fragment.txt');
+//    LoadFromFile('..\shaders\' + Name + '.gs');
+//    GeometryProgram := ansistring(text);
+    LoadFromFile('..\shaders\objects.fs');
     FragmentProgram := ansistring(text);
   finally
     Free;
   end;
   SLen := Length(VertexProgram);
   glShaderSource(VP, 1, @VertexProgram, @SLen);
+
+//  SLen := Length(GeometryProgram);
+//  glShaderSource(GP, 1, @GeometryProgram, @SLen);
 
   SLen := Length(FragmentProgram);
   glShaderSource(FP, 1, @FragmentProgram, @SLen);
@@ -243,6 +273,18 @@ begin
       exit;
     end;
   glAttachShader(Result, VP);
+
+{  glCompileShader(GP);
+  glGetShaderiv(GP, GL_COMPILE_STATUS, @Rvalue);
+  if RValue = 0 then
+  	begin
+    	ShaderLog := GetInfoLog(GP);
+			MessageDlg(string(ShaderLog), mtError, [mbOK], 0);
+      Application.Terminate;
+      Result := 0;
+      exit;
+    end;
+  glAttachShader(Result, GP);}
 
   glCompileShader(FP);
   glGetShaderiv(FP, GL_COMPILE_STATUS, @Rvalue);
@@ -266,14 +308,13 @@ begin
 			MessageDlg(string(ShaderLog), mtError, [mbOK], 0);
       exit;
     end;
-
-	glUseProgram(Result);
+	SwitchProgram(Result);
   texLoc := glGetUniformLocation(Result, 'texture');
   glUniform1i(texLoc, 0);
-
   texLoc := glGetUniformLocation(Result, 'shadow');
   glUniform1i(texLoc, 1);
-  program_id := Result;
+  texLoc := glGetUniformLocation(Result, 'heights');
+  glUniform1i(texLoc, 2);
 end;
 
 { TMatrixStack }

@@ -5,6 +5,9 @@ interface uses
 
 procedure DrawShadow;
 
+var
+  ShadowMatrix: TMatrix;
+
 implementation uses
   gfxrender, graphics, shaders, unit1;
 
@@ -13,17 +16,6 @@ var
   depthTexture: TGLuint = 0;
 const
   ShadowMapSize = 4096;
-
-procedure CheckError;
-var
-  errCode: Cardinal;
-begin
-  errCode := glGetError;
-  if errCode <> 0 then begin
-    MessageDlg(string(gluErrorString(errCode)), mtError, [mbok], 0);
-    Application.Terminate;
-  end;
-end;
 
 procedure Init;
 begin
@@ -39,7 +31,7 @@ begin
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   glActiveTexture(GL_TEXTURE0);
-  CheckError;
+  glCheckError;
 end;
 
 procedure Ortho(s: Single);
@@ -58,7 +50,6 @@ procedure DrawShadow;
 var
 //  bmp: TBitmap;
   m_viewport: TRect;
-  ShadowMatrix: TMatrix;
 const
   s = 44;
 begin
@@ -94,7 +85,7 @@ begin
 //  finally
 //    Free;
 //  end;
-  CheckError;
+  glCheckError;
 end;
 
 end.

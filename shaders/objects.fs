@@ -1,11 +1,11 @@
-#version 130
+#version 330 core
 
 uniform sampler2D material;
 uniform sampler2DShadow shadow;
 uniform vec3 sunPos;
 uniform float lightOverride;
 
-in vec4 spos;
+in vec4 spos, wpos;
 in vec3 fnorm;
 in vec2 ftex;
 
@@ -15,6 +15,8 @@ const vec3 SunLight = {1, 1, 0.9};
 const vec3 MoonLight = {0.25, 0.25, 0.35};
 
 void main(){
+  if (wpos.z <= -5)
+    discard;
   float mz = 0.1*(sunPos.z+2);
   vec3 smPos, smLight, ambient = vec3(mz, mz, 1.3*mz);
   if (sunPos.z < 0) {
@@ -41,5 +43,6 @@ void main(){
     else
       brightness = brightness * shadowZ;
     color = texture(material, ftex).rgb * (smLight * brightness + ambient);
+//    color = smPos;//brightness*fract(fnorm*0.5);
   }
 }

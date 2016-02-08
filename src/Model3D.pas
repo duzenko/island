@@ -162,8 +162,6 @@ end;
 procedure TModel3D.Draw(frame: Integer);
 var
   i, k: Integer;
-//  vi3: Integer;
-//  vi3: TIndexVector;
   Mesh: PModelMesh;
   Faces: PIndexArray;
 begin
@@ -173,9 +171,6 @@ begin
   SetShaderPointer('vpos', 3, 0, VerticesSkinned);
   SetShaderPointer('vtex', 2, 0, TexCoords.Data[0]);
   SetShaderPointer('vnorm', 3, 0, Normals.Data[0]);
-//  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, );//Vertices.Data[0]);
-//  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, Normals.Data[0]);//Vertices.Data[0]);
-//  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, TexCoords.Data[0]);//Vertices.Data[0]);
   for k := 0{DebugIndex} to {DebugIndex{ }High(Meshes){} do begin
     Mesh := @Meshes[k];
     if Mesh.TurnedOff then
@@ -188,17 +183,6 @@ begin
       glPushMatrix;
       glMultMatrixf(TMatrix(Mesh.Animations[frame]^));
       DrawIndexArray(GL_TRIANGLE_FAN, Faces^);
-      {glBegin(GL_TRIANGLE_FAN);
-      for j := 0 to Faces.Count-1 do begin
-        vi3 := Faces.FData[j];
-        glNormal3fv(pointer(Normals[vi3]));
-        glTexCoord2fv(pointer(texCoords[vi3]));
-        if VerticesSkinned[vi3].used then
-          glVertex3fv(@VerticesSkinned[vi3].v)
-        else
-          glVertex3fv(pointer(Vertices[vi3]));
-      end;
-      glEnd;     }
 {      if Mesh.HasBones then begin
         glDisable(GL_DEPTH_TEST);
         glPointSize(8);

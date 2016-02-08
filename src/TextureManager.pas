@@ -50,6 +50,8 @@ begin
   pic := TPicture.Create;
   try
     pic.LoadFromFile(tr.FileName);
+    if Application = nil then
+      Exit;
     bmp.Assign(pic.Graphic);
   finally
     pic.Free;

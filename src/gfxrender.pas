@@ -15,10 +15,10 @@ procedure CameraMoved;
 procedure RenderScene;
 
 implementation uses
-  Math, Khrono, TextureManager, Shadows, shaders, vectors, unit1, Trees;
+  Math, Khrono, TextureManager, Shadows, shaders, vectors, unit1, Trees, Terrain;
 
 type
-  TTextureEnum = (texGrass, texSun, texMoon, texWheat);
+  TTextureEnum = (texSun, texMoon, texWheat);
 
 var
   Wheat: array[-3999..3999, 0..15] of Single;
@@ -26,7 +26,6 @@ var
 procedure BindTexture(texEnum: TTextureEnum);
 const
   TexFiles: array[TTextureEnum] of string = (
-    '..\textures\green-grass-texture.jpg',
     '..\textures\sun.jpg',
     '..\textures\a2fdc0061b03.png',
     '..\textures\wheat.bmp'
@@ -44,7 +43,6 @@ begin
   glRotatef(-CameraLook.x, 0, 0, 1);
   glTranslatef(1, 0, -1.8);
   MatrixMode(true);
-  LoadIdentity;
 end;
 
 procedure LoadModels;
@@ -53,7 +51,7 @@ const {$J+}
 begin
   Farmhouse := TModel3D.Create('..\models\farmhouse\untitled.obj');
   Wagen := TModel3D.Create('..\models\wagen\untitled.obj');
-  Oldhouse := TModel3D.Create('..\models\oldhouse\untitled.obj');
+//  Oldhouse := TModel3D.Create('..\models\oldhouse\untitled.obj');
   Peasant := TMilitiaAdventurer.Create();
 end;
 
@@ -63,11 +61,11 @@ var
 begin
   TThread.CreateAnonymousThread(LoadModels).Start;
   glPointSize(7);
-  result := GenerateRenderPrograms <> 0;
-  glEnableVertexAttribArray(1);
-//  glEnableVertexAttribArray(2);
+  prgTerrain := LoadGpuProgram('terrain');
+  prgObjects := LoadGpuProgram('objects');
+  result := prgObjects*prgTerrain <> 0;
+
   glEnable(GL_DEPTH_TEST);
-//  glEnable(GL_MULTISAMPLE);
   for i := -3999 to 3999 do begin
       Wheat[i, 0] := random*9;
       Wheat[i, 1] := random*9;
@@ -118,21 +116,9 @@ begin
 end;
 
 procedure RenderScene;
-const
-  vdata: array[0..31] of Single = (
-    -999, -999, 0, -333, -333, 0, 0, 1,
-    +999, -999, 0, +333, -333, 0, 0, 1,
-    -999, +999, 0, -333, +333, 0, 0, 1,
-    +999, +999, 0, +333, +333, 0, 0, 1
-  );
 begin
-  BindTexture(texGrass);
-  SetShaderPointer('vpos', 3, 32, @vdata[0]);
-  SetShaderPointer('vnorm', 3, 32, @vdata[5]);
-  SetShaderPointer('vtex', 2, 32, @vdata[3]);
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  RenderTerrain;
 
-//  Exit;
   glPushMatrix;
   glTranslatef(9, -5, 0);
   glScalef(0.3);
@@ -183,6 +169,7 @@ begin
   TTextureManager.Disabled := false;
 
   CameraMoved;
+  LoadIdentity;
   RenderSky;
   RenderScene;
 end;
