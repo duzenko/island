@@ -55,8 +55,10 @@ begin
     Cursor := crNone;
   end;
   VK_F6:      Cursor := crDefault;
-  VK_LEFT:    Dec(TModel3D.DebugIndex);
-  VK_RIGHT:   Inc(TModel3D.DebugIndex);
+  VK_LEFT:    CameraLook.x := CameraLook.x - 0.3;
+  VK_RIGHT:   CameraLook.x := CameraLook.x + 0.3;
+  VK_UP:      CameraLook.y := CameraLook.y + 0.3;
+  VK_DOWN:    CameraLook.y := CameraLook.y - 0.3;
   VK_SPACE:   Khrono.Paused := not Khrono.Paused;
   end;
 end;
@@ -70,9 +72,9 @@ begin
     Exit;
   if (FMousePoint.X = X) and (FMousePoint.Y = Y) then
     Exit;
-  CameraLook.x := CameraLook.x + cSens*(FMousePoint.X - X);
-  CameraLook.y := Min(0, Max(-180, CameraLook.y + cSens*(FMousePoint.Y - Y)));
-  gfxrender.CameraMoved;
+  CameraLook.ax := CameraLook.ax + cSens*(FMousePoint.X - X);
+  CameraLook.ay := Min(0, Max(-180, CameraLook.ay + cSens*(FMousePoint.Y - Y)));
+//  gfxrender.CameraMoved;
   Mouse.CursorPos := ClientToScreen(FMousePoint);
 //  FormPaint(nil);
 end;

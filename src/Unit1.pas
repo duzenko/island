@@ -95,7 +95,7 @@ begin
   glFinish;
   glFlush;
   glReadPixels(0, 0, Form7.ClientHeight, Form7.ClientHeight, GL_BGR, GL_UNSIGNED_BYTE, BMP.ScanLine[Form7.ClientHeight-1]);
-  CameraMoved;
+//  CameraMoved;
   bmp.SaveToFile('1.bmp');
   bmp.Free;
   glViewport(0, 0, Form7.ClientWidth, Form7.ClientHeight);

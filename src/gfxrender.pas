@@ -7,11 +7,11 @@ interface uses
 var
   glRC: THandle;
   AspectRatio: Single;
-  CameraLook: record x, y: Single end = (x: -100; y: -90);
+  CameraLook: record x, y, z, ax, ay: Single end = (z: 1.8; ax: -100; ay: -90);
   Farmhouse, Oldhouse, Wagen: TModel3D;
 
 procedure Render;
-procedure CameraMoved;
+//procedure CameraMoved;
 procedure RenderScene;
 
 implementation uses
@@ -32,17 +32,6 @@ const
   );
 begin
   TTextureManager.SwitchTo(TexFiles[texEnum]);
-end;
-
-procedure CameraMoved;
-begin
-  MatrixMode(false);
-  LoadIdentity;
-  Frustum(1, AspectRatio, 0.1);
-  glRotatef(CameraLook.y, 1, 0, 0);
-  glRotatef(-CameraLook.x, 0, 0, 1);
-  glTranslatef(1, 0, -1.8);
-  MatrixMode(true);
 end;
 
 procedure LoadModels;
@@ -115,6 +104,22 @@ begin
   SetShaderFloat('lightOverride', 0);
 end;
 
+procedure CameraMoved;
+begin
+  MatrixMode(false);
+  LoadIdentity;
+  Frustum(1, AspectRatio, 0.1);
+  glRotatef(CameraLook.ay, 1, 0, 0);
+  glRotatef(-CameraLook.ax, 0, 0, 1);
+  MatrixMode(true);
+  LoadIdentity;
+  RenderSky;
+  MatrixMode(false);
+  glTranslatef(-CameraLook.x, -CameraLook.y, -CameraLook.z);
+//  glTranslatef(3e2, 0, -1.8*33);
+  MatrixMode(true);
+end;
+
 procedure RenderScene;
 begin
   RenderTerrain;
@@ -169,8 +174,6 @@ begin
   TTextureManager.Disabled := false;
 
   CameraMoved;
-  LoadIdentity;
-  RenderSky;
   RenderScene;
 end;
 

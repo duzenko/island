@@ -15,8 +15,8 @@ const vec3 SunLight = {1, 1, 0.9};
 const vec3 MoonLight = {0.25, 0.25, 0.35};
 
 void main(){
-  if (wpos.z <= -5)
-    discard;
+//  if (wpos.z < -111)
+//    discard;
   float mz = 0.1*(sunPos.z+2);
   vec3 smPos, smLight, ambient = vec3(mz, mz, 1.3*mz);
   if (sunPos.z < 0) {
@@ -43,6 +43,6 @@ void main(){
     else
       brightness = brightness * shadowZ;
     color = texture(material, ftex).rgb * (smLight * brightness + ambient);
-//    color = smPos;//brightness*fract(fnorm*0.5);
+//    color = fnorm;
   }
 }
