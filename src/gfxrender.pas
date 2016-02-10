@@ -7,7 +7,7 @@ interface uses
 var
   glRC: THandle;
   AspectRatio: Single;
-  CameraLook: record x, y, z, ax, ay: Single end = (z: 1.8; ax: -100; ay: -90);
+  CameraLook: record x, y, z, ax, ay: Single end = (z: 1.8e0; ax: -100; ay: -90);
   Farmhouse, Oldhouse, Wagen: TModel3D;
 
 procedure Render;
@@ -86,7 +86,7 @@ begin
   glDepthMask(false);
   glEnable(GL_BLEND);
   glPushMatrix;
-  glTranslatef(0, 0, 1.7);
+//  glTranslatef(0, 0, 1.7);
   glRotatef(Time*360, 0, 1, 0);
   glRotatef(-Cos(SunAngle*2*pi)*30, 1, 0, 0);
   glTranslatef(0, 0, 10);
@@ -115,8 +115,7 @@ begin
   LoadIdentity;
   RenderSky;
   MatrixMode(false);
-  glTranslatef(-CameraLook.x, -CameraLook.y, -CameraLook.z);
-//  glTranslatef(3e2, 0, -1.8*33);
+  glTranslatef(-CameraLook.x, -CameraLook.y, -CameraLook.z - GetHeight(CameraLook.x, CameraLook.y));
   MatrixMode(true);
 end;
 
@@ -125,18 +124,18 @@ begin
   RenderTerrain;
 
   glPushMatrix;
-  glTranslatef(9, -5, 0);
+  TranslateOnTerrain(9, -5);
   glScalef(0.3);
   Farmhouse.Draw;
   glPopMatrix;
 
   glPushMatrix;
-  glTranslatef(5, 0, 0);
+  TranslateOnTerrain(5, 0);
   Wagen.Draw;
   glPopMatrix;
 
   glPushMatrix;
-  glTranslatef(8, 8, 0);
+  TranslateOnTerrain(8, 8);
   glScalef(3, 3, 3);
   Oldhouse.Draw;
   glPopMatrix;

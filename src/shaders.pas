@@ -250,7 +250,7 @@ begin
     VertexProgram := ansistring(text);
 //    LoadFromFile('..\shaders\' + Name + '.gs');
 //    GeometryProgram := ansistring(text);
-    LoadFromFile('..\shaders\objects.fs');
+    LoadFromFile('..\shaders\' + Name + '.fs');
     FragmentProgram := ansistring(text);
   finally
     Free;
@@ -309,12 +309,14 @@ begin
       exit;
     end;
 	SwitchProgram(Result);
-  texLoc := glGetUniformLocation(Result, 'texture');
+  texLoc := glGetUniformLocation(Result, 'material');
   glUniform1i(texLoc, 0);
   texLoc := glGetUniformLocation(Result, 'shadow');
   glUniform1i(texLoc, 1);
   texLoc := glGetUniformLocation(Result, 'heights');
   glUniform1i(texLoc, 2);
+  texLoc := glGetUniformLocation(Result, 'material2');
+  glUniform1i(texLoc, 3);
 end;
 
 { TMatrixStack }

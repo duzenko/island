@@ -43,7 +43,16 @@ end;
 
 procedure TForm7.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+var
+  spd: Single;
 begin
+  spd := 0.3;
+  if ssCtrl in Shift then
+    spd := spd * 3;
+  if ssShift in Shift then
+    spd := spd * 3;
+  if ssAlt in Shift then
+    spd := spd * 3;
   case Key of
   VK_ESCAPE:  Close;
   VK_F2:      glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -55,11 +64,13 @@ begin
     Cursor := crNone;
   end;
   VK_F6:      Cursor := crDefault;
-  VK_LEFT:    CameraLook.x := CameraLook.x - 0.3;
-  VK_RIGHT:   CameraLook.x := CameraLook.x + 0.3;
-  VK_UP:      CameraLook.y := CameraLook.y + 0.3;
-  VK_DOWN:    CameraLook.y := CameraLook.y - 0.3;
+  VK_DOWN:    CameraLook.x := CameraLook.x - spd;
+  VK_UP:   CameraLook.x := CameraLook.x + spd;
+  VK_LEFT:      CameraLook.y := CameraLook.y + spd;
+  VK_RIGHT:    CameraLook.y := CameraLook.y - spd;
   VK_SPACE:   Khrono.Paused := not Khrono.Paused;
+  VK_PRIOR:    CameraLook.z := CameraLook.z + spd;
+  VK_NEXT:   CameraLook.z := CameraLook.z - spd;
   end;
 end;
 

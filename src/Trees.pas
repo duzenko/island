@@ -12,7 +12,7 @@ type
   end;
 
 implementation uses
-  Shaders;
+  Shaders, Terrain;
 
 { TTrees }
 
@@ -37,7 +37,7 @@ class procedure TTrees.Draw;
 //    a := {i/10*2*Pi;// }(0.9+i*0.05)*Pi;
 //    r := random*3 + 22;
       glPushMatrix;
-      glTranslatef(r*sin(a), r*cos(a), 0);
+      TranslateOnTerrain(r*sin(a), r*cos(a));
       glScalef(4, 4, 4);
       m.Draw;
       glPopMatrix;

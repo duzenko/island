@@ -27,7 +27,7 @@ var
   Peasant: TMilitiaAdventurer;
 
 implementation uses
-  DateUtils, Khrono, Obstacles, shaders;
+  DateUtils, Khrono, Obstacles, shaders, Terrain;
 
 type
   TMesh = (Body, Sheat, Purse, Shield, Sword1, LegBag,
@@ -162,7 +162,7 @@ begin
     frame := gettickcount div 40 mod (EndNo - StartNo) + StartNo;
   Model3d.TurnMeshes(Cardinal(cAnimationMeshes[Animation]));
   glPushMatrix;
-  glTranslatef(Location.x, Location.y, Location.z);
+  glTranslatef(Location.x, Location.y, Location.z+GetHeight(Location.x, Location.y));
   if Look.Normalise2 then begin
     M.CalcTransformationMatrix2(tvector.Create(0, -1, 0), Look);
     glMultMatrixf(M);

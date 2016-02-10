@@ -11,7 +11,8 @@ type
     procedure LoadFromObj(const fn: string);
   end;
 
-implementation
+implementation uses
+  unit1;
 
 type
   TIndexVector = TGLVectori3;
@@ -124,8 +125,13 @@ begin
       Line.SetDelimitedText(PAnsiChar(UTF8Encode(Strings[i])));
       if Line[0] = 'newmtl' then
         mtlName := String(Line[1]);
-      if Line[0] = 'map_Kd' then
+      if Line[0] = 'map_Kd' then begin
         MtlStyles.Values[mtlName] := ExtractFilePath(fn) + UTF8ToWideString(Line.CombineFrom(1));
+        TThread.Synchronize(nil, procedure begin
+          if Form1 <> nil then
+            Form1.CheckListBox1.Items.Add('add ' + fn);
+        end);
+      end;
     end;
   finally
     Free;

@@ -7,17 +7,17 @@ interface uses
 type
   TTextureRecord = class
     FileName: string;
-    FileSize, TextureId: Integer;
+    FileSize, TextureId, TexUnit: Integer;
     Loaded: Boolean;
   end;
   TTextureList = class(TObjectList<TTextureRecord>)
     function IndexOf(const fn: string): Integer;
-    function Add(const fn: string): Integer;
+    function Add(const fn: string; TexUnit: Integer): Integer;
   end;
 
   TTextureManager = class
     class constructor Create;
-    class procedure SwitchTo(const fn: string);
+    class procedure SwitchTo(const fn: string; TexUnit: Integer = GL_TEXTURE0);
   class var
     Last: string;
     List: TTextureList;
@@ -59,9 +59,8 @@ begin
   TThread.CreateAnonymousThread(procedure begin
     TThread.Synchronize(nil, procedure
     begin
-      with TTextureManager.List do begin
-        glBindTexture(GL_TEXTURE_2D, tr.TextureId);
-      end;
+      glActiveTexture(tr.TexUnit);
+      glBindTexture(GL_TEXTURE_2D, tr.TextureId);
       Form1.CheckListBox1.Items.Add('upload ' + IntToStr(tr.FileSize div 1024) + ' ' + tr.FileName);
       UploaderProc(bmp);
     end);
@@ -98,7 +97,7 @@ begin
   TThread.CreateAnonymousThread(LoaderThread).Start;
 end;
 
-class procedure TTextureManager.SwitchTo(const fn: string);
+class procedure TTextureManager.SwitchTo(const fn: string; TexUnit: Integer = GL_TEXTURE0);
 var
   i, Texture: Integer;
 begin
@@ -108,20 +107,22 @@ begin
     Exit;
   i := List.IndexOf(fn);
   if i < 0 then begin
-    List.Add(fn);
+    List.Add(fn, TexUnit);
   end else begin
     Texture := List[i].TextureId;
+    glActiveTexture(TexUnit);
     glBindTexture(GL_TEXTURE_2D, Texture);
   end;
 end;
 
 { TTextureList }
 
-function TTextureList.Add(const fn: string): Integer;
+function TTextureList.Add(const fn: string; TexUnit: Integer): Integer;
 var
   r: TTextureRecord;
 begin
   r := TTextureRecord.Create;
+  r.TexUnit := TexUnit;
   r.FileName := fn;
   with TFileStream.Create(fn, fmOpenRead) do try
     r.FileSize := Size;
