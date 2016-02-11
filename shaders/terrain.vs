@@ -9,6 +9,7 @@ out vec4 spos, wpos;
 flat out vec3 fnorm;
 out vec2 ftex;
 
+#define PI 3.1415926535897932384626433832795
 vec3 calcNormal(vec3 v, vec3 w) {
   vec3 n = normalize((cross(v, w)));
   if (n.z < 0)
@@ -28,12 +29,28 @@ float getHeight(vec2 texCoords) {
   return texture(heights, texCoords).r;
 }
 
-vec3 vposFor(int vertexID, int instanceID) {
+const vec2 dir[4] = {vec2(1,1),vec2(-1,1),vec2(-1,-1),vec2(1,-1)};
+vec3 vpos2(int vertexID, int instanceID) {
+  float v = (vertexID+vertexID%2)/2;
+  v *= v*0.1;
+  vec2 index;
+  if (vertexID%2==1)
+    index = v*dir[instanceID];
+  else
+    index = v*dir[(instanceID+1)%4];
+  return vec3(index, getHeight(vec2(0.5, 0.5)+index/worldSize)*(-255)+255);
+}
+
+vec3 vpos1(int vertexID, int instanceID) {
   vec2 index = vec2((vertexID-vertexID%2)/2, instanceID - vertexID%2);
   index = vec2(index)-vec2(0.5, 0.5)*terrainDetail;
   vec2 mag = abs((2*index/terrainDetail/terrainDetail)*worldSize);
-//  index *= max(vec2(1, 1), mag);
+  index *= max(vec2(1, 1), mag);
   return vec3(index, getHeight(vec2(0.5, 0.5)+index/worldSize)*(-255)+255);
+}
+
+vec3 vposFor(int vertexID, int instanceID) {
+  return vpos2(vertexID, instanceID);
 }
 
 void main() {

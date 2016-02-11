@@ -18,8 +18,8 @@ var
   htbmp: TBitmap;
 
 const
-  TerrainDetail = 990;
-  WorldSize = 19990;
+  TerrainDetail = 90;
+  WorldSize = 9990;
 
 function GetHeight(x, y: Single): Single;
 
@@ -108,7 +108,7 @@ begin
   SetShaderFloat('terrainDetail', TerrainDetail);
   TTextureManager.SwitchTo('..\textures\green-grass-texture.jpg');
   TTextureManager.SwitchTo('..\textures\seamless_stone_cliff_face_mountain_texture_by_hhh316-d68i26q.jpg', GL_TEXTURE3);
-  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2*(TerrainDetail), TerrainDetail);
+  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2*(TerrainDetail), 4);
   glPopMatrix;
 
   SwitchProgram(prgObjects);
@@ -118,7 +118,6 @@ begin
   SetShaderPointer('vtex', 2, 32, @vdata[3]);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   SetShaderFloat('worldSize', WorldSize);
-//  SetShaderFloat('visibility', TerrainVisibility);
   glCheckError;
 end;
 

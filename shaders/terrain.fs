@@ -42,7 +42,7 @@ void main(){
       brightness = 0;
     else
       brightness = brightness * shadowZ;
-    if (fnorm.z > 0.95)
+    if (fnorm.z > 0.95 && wpos.z > 2)
       color = texture(material, ftex).rgb * (smLight * brightness + ambient);
     else
       color = texture(material2, ftex).rgb * (smLight * brightness + ambient);
