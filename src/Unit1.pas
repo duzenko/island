@@ -103,9 +103,9 @@ begin
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
-var
-  i: Integer;
-  s: Ansistring;
+//var
+//  i: Integer;
+//  s: Ansistring;
 begin
   with ValueListEditor1.Strings do begin
     ValueFromIndex[0] := TimeToStr(Khrono.Time);

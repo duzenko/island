@@ -2,13 +2,13 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Form1'
-  ClientHeight = 653
-  ClientWidth = 284
+  ClientHeight = 775
+  ClientWidth = 337
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -13
+  Font.Height = -16
   Font.Name = 'Tahoma'
   Font.Style = []
   KeyPreview = True
@@ -17,13 +17,17 @@ object Form1: TForm1
   Visible = True
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
-  PixelsPerInch = 96
-  TextHeight = 16
+  PixelsPerInch = 120
+  TextHeight = 19
   object Image1: TImage
     Left = 0
-    Top = 376
-    Width = 284
-    Height = 277
+    Top = 447
+    Width = 337
+    Height = 328
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Align = alBottom
     Center = True
     Proportional = True
@@ -32,8 +36,12 @@ object Form1: TForm1
   object ValueListEditor1: TValueListEditor
     Left = 0
     Top = 0
-    Width = 284
-    Height = 89
+    Width = 337
+    Height = 106
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Align = alTop
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goAlwaysShowEditor, goThumbTracking]
     Strings.Strings = (
@@ -54,9 +62,13 @@ object Form1: TForm1
   end
   object TreeView1: TTreeView
     Left = 0
-    Top = 89
-    Width = 284
-    Height = 287
+    Top = 106
+    Width = 337
+    Height = 341
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Align = alClient
     Indent = 19
     TabOrder = 1
@@ -65,9 +77,13 @@ object Form1: TForm1
   end
   object CheckListBox1: TCheckListBox
     Left = 0
-    Top = 89
-    Width = 284
-    Height = 287
+    Top = 106
+    Width = 337
+    Height = 341
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     OnClickCheck = CheckListBox1ClickCheck
     Align = alClient
     TabOrder = 2
