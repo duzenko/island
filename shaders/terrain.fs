@@ -46,6 +46,6 @@ void main(){
       color = texture(material, ftex).rgb * (smLight * brightness + ambient);
     else
       color = texture(material2, ftex).rgb * (smLight * brightness + ambient);
-//    color = fnorm;
+//    color = abs(fnorm);
   }
 }

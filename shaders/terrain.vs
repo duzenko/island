@@ -27,7 +27,7 @@ float getHeight(vec2 texCoords) {
     h[1, 0] := HeightAt(ix+1, iy);
     h[1, 1] := HeightAt(ix+1, iy+1);
     Result := h[0, 0]*(ix+1-x)*(iy+1-y)+h[1, 0]*(x-ix)*(iy+1-y)+h[0, 1]*(ix+1-x)*(y-iy)+h[1, 1]*(x-ix)*(y-iy);*/
-  return texture(heights, texCoords).r;
+  return texture(heights, texCoords).w + 0.0;
 }
 
 const vec2 dir[4] = {vec2(1,1),vec2(-1,1),vec2(-1,-1),vec2(1,-1)};
@@ -47,11 +47,12 @@ vec3 vpos1(int vertexID, int instanceID) {
   index = vec2(index)-vec2(0.5, 0.5)*terrainDetail;
   float n = max(abs(index.x), abs(index.y));
   if (n != 0) {
-  float r = n*sqrt(2), a = (index.y-index.x+n)*PI/(4*n);
-  r *= 0.1*r;
-  if (index.x == -n || index.y == -n)
-    a = 1.5*PI - a;
-  index = vec2(r*cos(a), r*sin(a));
+    float r = n*sqrt(2), a = (index.y-index.x+n)*PI/(4*n);
+  //  r *= 0.1*r;
+    if (index.x == -n || index.y == -n)
+      a = 1.5*PI - a;
+    index = vec2(r*cos(a), r*sin(a));
+    index.y += instanceID*0;
   }
   return vec3(index, getHeight(vec2(0.5, 0.5)+index/worldSize)*(-255)+255);
 }
@@ -76,6 +77,8 @@ void main() {
   vec4 fpos = viewProjectionMatrix*wpos;
   spos = shadowMatrix*wpos;
   ftex = vpos.xy*0.1;
-  fnorm = calcNormal(neighbor2-vpos, neighbor1-vpos);
+//  fnorm = calcNormal(neighbor2-vpos, neighbor1-vpos);
+  fnorm = texture(heights, vec2(0.5, 0.5)+wpos.xy/worldSize).rgb - vec3(0.5, 0.5, 0.5);
+  fnorm *= vec3(-2, 2, 2);
   gl_Position = fpos;
 }

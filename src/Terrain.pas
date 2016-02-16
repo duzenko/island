@@ -18,7 +18,7 @@ var
   htbmp: TBitmap;
 
 const
-  TerrainDetail = 990;
+  TerrainDetail = 399;
   WorldSize = 9990;
 
 function GetHeight(x, y: Single): Single;
@@ -56,26 +56,46 @@ procedure LoadMap;
 const
 //  cFileName = '..\maps\qr7YY.jpg';
   cFileName = '..\maps\1881.DinoIsland06.gif';
+  cNormalsFileName = '..\maps\normalmap.bmp';
 //  cFileName = '..\maps\1.bmp';
 var
   pic: TPicture;
+  nbmp: TBitmap;
+  y: Integer;
+  x: Integer;
+  pq: PRGBQuadArray;
+  pb: PByteArray;
 begin
   htbmp := TBitmap.Create;
+  nbmp := TBitmap.Create;
   pic := TPicture.Create;
   try
+    pic.LoadFromFile(cNormalsFileName);
+    if Application = nil then
+      Exit;
+    nbmp.Assign(pic.Graphic);
+    nbmp.PixelFormat := pf32bit;
     pic.LoadFromFile(cFileName);
     if Application = nil then
       Exit;
     htbmp.Assign(pic.Graphic);
+    for y := 0 to nbmp.Height-1 do begin
+      pq := nbmp.ScanLine[y];
+      pb := htbmp.ScanLine[y];
+      for x := 0 to nbmp.Width - 1 do
+        pq^[x].rgbReserved := pb^[x];
+    end;
     TerrainSize.cx := htbmp.Width;
     TerrainSize.cy := htbmp.Height;
     TThread.Synchronize(nil, procedure
     begin
       glActiveTexture(GL_TEXTURE2);
       glBindTexture(GL_TEXTURE_2D, HeightTexture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TerrainSize.cx, TerrainSize.cy, 0,
-        IfThen(htbmp.PixelFormat = pf8bit, GL_RED, GL_RGB),
-        GL_UNSIGNED_BYTE, htbmp.ScanLine[htbmp.Height-1]);
+//      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TerrainSize.cx, TerrainSize.cy, 0,
+//        IfThen(htbmp.PixelFormat = pf8bit, GL_ALPHA, GL_RGB),
+//        GL_UNSIGNED_BYTE, htbmp.ScanLine[htbmp.Height-1]);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TerrainSize.cx, TerrainSize.cy, 0,
+        GL_BGRA, GL_UNSIGNED_BYTE, nbmp.ScanLine[nbmp.Height-1]);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -83,6 +103,7 @@ begin
       glActiveTexture(GL_TEXTURE0);
     end);
   finally
+    nbmp.Free;
     pic.Free;
   end;
 end;
@@ -110,7 +131,7 @@ begin
   SetShaderFloat('terrainDetail', TerrainDetail);
   TTextureManager.SwitchTo('..\textures\green-grass-texture.jpg');
   TTextureManager.SwitchTo('..\textures\seamless_stone_cliff_face_mountain_texture_by_hhh316-d68i26q.jpg', GL_TEXTURE3);
-  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2*(TerrainDetail), TerrainDetail);
+  glDrawArraysInstanced(GL_LINE_STRIP, 0, 2*(TerrainDetail), TerrainDetail{});
   glPopMatrix;
 
   SwitchProgram(prgObjects);
