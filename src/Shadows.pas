@@ -52,7 +52,7 @@ var
   bmp: TBitmap;
   m_viewport: TRect;
 const
-  s = 44;
+  s = 144;
 begin
   if FramebufferName = 0 then
     Init;

@@ -16,7 +16,7 @@ procedure glMultMatrixf(const M: TMatrix);
 procedure Frustum(fov, aspect, near: Single);
 procedure GetCurrentMatrix(out m: TMatrix);
 procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);
-procedure SetShaderPointer(const name: AnsiString; c, s: Integer; p: Pointer);
+function  SetShaderPointer(const name: AnsiString; c, s: Integer; p: Pointer): Integer;
 procedure SetShaderFloat(const name: AnsiString; f: Single);
 procedure SetShaderVec3(const name: AnsiString; v: PGLfloat);
 procedure glRotatef(angle: GLfloat; x: GLfloat; y: GLfloat; z: GLfloat);
@@ -104,19 +104,19 @@ begin
   glCheckError;
 end;
 
-procedure SetShaderPointer(const name: AnsiString; c, s: Integer; p: Pointer);
+function SetShaderPointer(const name: AnsiString; c, s: Integer; p: Pointer): Integer;
 var
-  attrLoc: Integer;
+  attrLoc: Integer absolute Result;
 begin
   attrLoc := glGetAttribLocation(ActiveProgram, PAnsiChar(name));
   if attrLoc < 0 then
     Exit;
-  if p = nil then
-    glDisableVertexAttribArray(attrLoc)
-  else begin
+//  if p = nil then
+//    glDisableVertexAttribArray(attrLoc)
+//  else begin
     glEnableVertexAttribArray(attrLoc);
     glVertexAttribPointer(attrLoc, c, GL_FLOAT, GL_FALSE, s, p);
-  end;
+//  end;
 end;
 
 procedure SetShaderMatrix(const varName: AnsiString; const m: TMatrix);

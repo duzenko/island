@@ -142,11 +142,12 @@ begin
   CheckKeys;
   Khrono.UISync;
   gfxrender.Render;
+  Application.ProcessMessages;
   SwapBuffers(Canvas.Handle);
   QueryPerformanceCounter(pc2);
   Form1.FrameTime := (pc2-pc1)*1000 div pcf;
-  Inc(TotalTime, Form1.FrameTime);
   pc1 := pc2;
+  Inc(TotalTime, Form1.FrameTime);
   with Form1.CheckListBox1{, TTextureManager.ToLoad }do begin
     if TotalTime < 5000 then
       Items.Add(Format('%5d %5d', [TotalTime, Form1.FrameTime]));

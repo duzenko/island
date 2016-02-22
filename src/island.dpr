@@ -15,7 +15,8 @@ uses
   ObjLoader in 'ObjLoader.pas',
   Shadows in 'Shadows.pas',
   shaders in 'shaders.pas',
-  Trees in 'Trees.pas';
+  Trees in 'Trees.pas',
+  DebugHelper in 'DebugHelper.pas';
 
 {$R *.res}
 

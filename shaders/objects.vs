@@ -2,9 +2,9 @@
 
 uniform mat4 modelMatrix, viewProjectionMatrix, shadowMatrix;
 //uniform sampler2D heights;
-//uniform float worldSize, visibility;
+uniform float instanced;
 
-in vec3 vpos, vnorm;
+in vec3 vpos, vnorm, instPos;
 in vec2 vtex;
 
 out vec4 spos;
@@ -16,8 +16,10 @@ void main() {
     ftex = vtex;
     fnorm = normalize(modelMatrix*vec4(vnorm, 0)).xyz;
     vec4 wpos = modelMatrix*vec4(vpos, 1);
-    float height=0;//texture(heights, vec2(0.5, 0.5)+wpos.xy/worldSize).r*(-255)+255;
-    fpos = viewProjectionMatrix*(wpos+vec4(0, 0, height, 0));
+    if (instanced==1)
+      fpos = viewProjectionMatrix*(wpos+vec4(instPos, 0));
+    else
+      fpos = viewProjectionMatrix*(wpos);
     spos = shadowMatrix*modelMatrix*vec4(vpos, 1);
   gl_Position = fpos;
 }

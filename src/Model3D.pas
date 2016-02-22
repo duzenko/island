@@ -52,6 +52,7 @@ type
 
   TModel3D = class
   protected
+    vbos: array[0..3] of GLuint;
     function AddMesh: PModelMesh;
     function MeshByName(const s: String): PModelMesh;
     function BoneByName(s: PAnsiChar): TBoneArray.P;
@@ -71,6 +72,7 @@ type
 
     procedure Draw; overload;
     procedure Draw(frame: Integer); overload;
+    procedure Draw(const pos: TFastArray<TGLVectorf3>); overload;
     procedure TurnMeshes(Flags: Cardinal);
     function AbsSize: TGLVectorf2;
   const {$J+}
@@ -219,6 +221,49 @@ end;
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
       end;     }
+
+procedure TModel3D.Draw(const pos: TFastArray<TGLVectorf3>);
+var
+  k: Integer;
+  Mesh: PModelMesh;
+  attrLoc: Integer;
+begin
+  if Self = nil then
+    Exit;
+  if vbos[0] = 0 then begin
+    glGenBuffers (4, @vbos[0]);
+    glBindBuffer (GL_ARRAY_BUFFER, vbos[0]);
+    glBufferData (GL_ARRAY_BUFFER, 3*Vertices.Count*sizeof(Single), Vertices.Data[0], GL_STATIC_DRAW);
+    glBindBuffer (GL_ARRAY_BUFFER, vbos[1]);
+    glBufferData (GL_ARRAY_BUFFER, 2*TexCoords.Count*sizeof(Single), TexCoords.Data[0], GL_STATIC_DRAW);
+    glBindBuffer (GL_ARRAY_BUFFER, vbos[2]);
+    glBufferData (GL_ARRAY_BUFFER, 3*Normals.Count*sizeof(Single), Normals.Data[0], GL_STATIC_DRAW);
+  end;
+  glBindBuffer (GL_ARRAY_BUFFER, vbos[0]);
+  SetShaderPointer('vpos', 3, 0, nil);
+  glBindBuffer (GL_ARRAY_BUFFER, vbos[1]);
+  SetShaderPointer('vtex', 2, 0, nil);
+  glBindBuffer (GL_ARRAY_BUFFER, vbos[2]);
+  SetShaderPointer('vnorm', 3, 0, nil);
+  glBindBuffer (GL_ARRAY_BUFFER, vbos[3]);
+  glBufferData (GL_ARRAY_BUFFER, 3*sizeof(Single)*pos.Count, pos.Data[0], GL_STATIC_DRAW);
+  attrLoc := SetShaderPointer('instPos', 3, 0, nil);
+  if attrLoc >= 0 then
+    glVertexAttribDivisor(attrLoc, 1);
+  SetShaderFloat('instanced', 1);
+  for k := 0{DebugIndex} to {DebugIndex{ }High(Meshes){} do begin
+    Mesh := @Meshes[k];
+    if Mesh.TurnedOff then
+      Continue;
+    TTextureManager.SwitchTo(MtlStyles.Values[mesh.Material]);
+    glDrawArraysInstanced(GL_TRIANGLES, Mesh.Triangles.Data[0]^, Mesh.Triangles.Count, pos.Count);
+  end;
+  SetShaderFloat('instanced', 0);
+//  SetShaderPointer('instPos', 3, 0, @NullVector);
+//  glVertexAttribDivisor(attrLoc, 1);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+end;
+
 procedure TModel3D.DrawIndexArray(Mode: GLint; const ia: TIndexArray);
 begin
   if ia.Count = 0 then

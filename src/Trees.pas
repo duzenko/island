@@ -30,18 +30,19 @@ class procedure TTrees.Draw;
   var
     a, r: Single;
     i: Integer;
+    p: TFastArray<TGLVectorf3>;
+    v: TGLVectorf3;
   begin
-    for i := 1 to 1 do begin
+    p.Count := 0;
+    for i := 1 to 22 do begin
       r := random*99 + 22;
-      a := (Random*0.8+0.4)*Pi;
-//    a := {i/10*2*Pi;// }(0.9+i*0.05)*Pi;
-//    r := random*3 + 22;
-      glPushMatrix;
-      TranslateOnTerrain(r*sin(a), r*cos(a));
-      glScalef(4, 4, 4);
-      m.Draw;
-      glPopMatrix;
+      a := (Random*2+0.4)*Pi;
+      v[0] := r*sin(a);
+      v[1] := r*cos(a);
+      v[2] := GetHeight(v[0], v[1]);
+      p.Add(v);
     end;
+    m.Draw(p);
   end;
 
 var
@@ -50,6 +51,8 @@ begin
   if Trees = nil then
     Exit;
   RandSeed := 0;
+  glPushMatrix;
+  glScalef(4, 4, 4);
   for i := 0 to 9 do begin
     tk := i;//Random(10);
       if tk = 0 then
@@ -59,13 +62,17 @@ begin
       Trees.TurnMeshes(tk);
       DrawRandom(Trees);
   end;
+  glPopMatrix;
   if Bushes = nil then
     Exit;
+  glPushMatrix;
+  glScalef(4, 4, 4);
   for i := 0 to 8 do begin
     tk := 1 shl i;//Random(10);
       Bushes.TurnMeshes(tk);
       DrawRandom(Bushes);
   end;
+  glPopMatrix;
 end;
 
 initialization
