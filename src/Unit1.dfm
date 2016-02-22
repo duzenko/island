@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Form1'
-  ClientHeight = 775
-  ClientWidth = 337
+  ClientHeight = 736
+  ClientWidth = 321
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -14,6 +14,7 @@ object Form1: TForm1
   KeyPreview = True
   Menu = MainMenu1
   OldCreateOrder = False
+  Scaled = False
   Visible = True
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
@@ -21,9 +22,9 @@ object Form1: TForm1
   TextHeight = 19
   object Image1: TImage
     Left = 0
-    Top = 447
-    Width = 337
-    Height = 328
+    Top = 425
+    Width = 321
+    Height = 311
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -31,18 +32,21 @@ object Form1: TForm1
     Align = alBottom
     Center = True
     Proportional = True
+    Stretch = True
     Visible = False
   end
   object ValueListEditor1: TValueListEditor
     Left = 0
     Top = 0
-    Width = 337
-    Height = 106
+    Width = 321
+    Height = 101
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
     Margins.Bottom = 4
     Align = alTop
+    DefaultColWidth = 120
+    DefaultRowHeight = 22
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goAlwaysShowEditor, goThumbTracking]
     Strings.Strings = (
       'World Time='
@@ -57,14 +61,14 @@ object Form1: TForm1
       '=')
     TabOrder = 0
     ColWidths = (
-      87
-      174)
+      70
+      224)
   end
   object TreeView1: TTreeView
     Left = 0
-    Top = 106
-    Width = 337
-    Height = 341
+    Top = 101
+    Width = 321
+    Height = 324
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -77,15 +81,16 @@ object Form1: TForm1
   end
   object CheckListBox1: TCheckListBox
     Left = 0
-    Top = 106
-    Width = 337
-    Height = 341
+    Top = 101
+    Width = 321
+    Height = 324
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
     Margins.Bottom = 4
     OnClickCheck = CheckListBox1ClickCheck
     Align = alClient
+    ItemHeight = 19
     TabOrder = 2
   end
   object Timer1: TTimer

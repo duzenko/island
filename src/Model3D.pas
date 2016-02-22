@@ -175,14 +175,18 @@ begin
     Mesh := @Meshes[k];
     if Mesh.TurnedOff then
       Continue;
+    glPushMatrix;
     TTextureManager.SwitchTo(MtlStyles.Values[mesh.Material]);
-    for i := 0 to Mesh.Polys.Count-1 do begin
-      if frame >= Mesh.Animations.Count then
-        Continue;
-      Faces := PIndexArray(Mesh.Polys[i]);
-      glPushMatrix;
+    if frame < Mesh.Animations.Count then begin
       glMultMatrixf(TMatrix(Mesh.Animations[frame]^));
+    for i := 0 to Mesh.Polys.Count-1 do begin
+      Faces := PIndexArray(Mesh.Polys[i]);
       DrawIndexArray(GL_TRIANGLE_FAN, Faces^);
+    end;
+    end;
+    glPopMatrix;
+  end;
+end;
 {      if Mesh.HasBones then begin
         glDisable(GL_DEPTH_TEST);
         glPointSize(8);
@@ -215,11 +219,6 @@ begin
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
       end;     }
-      glPopMatrix;
-    end;
-  end;
-end;
-
 procedure TModel3D.DrawIndexArray(Mode: GLint; const ia: TIndexArray);
 begin
   if ia.Count = 0 then

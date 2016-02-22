@@ -8,7 +8,6 @@ interface uses
 type
   TForm7 = class(TForm)
     Timer1: TTimer;
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormResize(Sender: TObject);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormCreate(Sender: TObject);
@@ -17,6 +16,7 @@ type
   private
     FMousePoint: TPoint;
     pcf: Int64;
+    procedure CheckKeys;
   public
     { Public declarations }
   end;
@@ -25,7 +25,7 @@ var
   Form7: TForm7;
 
 implementation uses
-  Math, Unit1, Khrono, Model3D, TextureManager;
+  Math, Unit1, Khrono, Model3D, TextureManager, Vectors;
 
 {$R *.dfm}
 
@@ -39,39 +39,6 @@ procedure TForm7.FormDestroy(Sender: TObject);
 begin
   DeactivateRenderingContext;
   DestroyRenderingContext(glRC);
-end;
-
-procedure TForm7.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-  spd: Single;
-begin
-  spd := 0.3;
-  if ssCtrl in Shift then
-    spd := spd * 3;
-  if ssShift in Shift then
-    spd := spd * 3;
-  if ssAlt in Shift then
-    spd := spd * 3;
-  case Key of
-  VK_ESCAPE:  Close;
-  VK_F2:      glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-  VK_F3:      glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-  VK_F4:      TModel3D.DebugDraw := not TModel3D.DebugDraw;
-  VK_F5:
-  begin
-    Mouse.CursorPos := ClientToScreen(FMousePoint);
-    Cursor := crNone;
-  end;
-  VK_F6:      Cursor := crDefault;
-  VK_DOWN:    CameraLook.x := CameraLook.x - spd;
-  VK_UP:   CameraLook.x := CameraLook.x + spd;
-  VK_LEFT:      CameraLook.y := CameraLook.y + spd;
-  VK_RIGHT:    CameraLook.y := CameraLook.y - spd;
-  VK_SPACE:   Khrono.Paused := not Khrono.Paused;
-  VK_PRIOR:    CameraLook.z := CameraLook.z + spd;
-  VK_NEXT:   CameraLook.z := CameraLook.z - spd;
-  end;
 end;
 
 procedure TForm7.FormMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -105,6 +72,61 @@ begin
   glViewport(0, 0, ClientWidth, ClientHeight);
 end;
 
+procedure TForm7.CheckKeys;
+var
+  spd: Single;
+  KeyState: array[0..255] of ShortInt;
+
+  procedure MoveCamera(t: Single);
+  var
+    mv: tvector;
+  begin
+    SinCos(DegToRad(-CameraLook.ax)+t, mv.x, mv.y);
+    CameraLook.x := CameraLook.x + spd*mv.x;
+    CameraLook.y := CameraLook.y + spd*mv.y;
+  end;
+
+begin
+  GetKeyboardState(TKeyboardState(KeyState));
+  spd := 0.3;
+  if KeyState[VK_CONTROL] < 0 then
+    spd := spd * 3;
+  if KeyState[VK_SHIFT] < 0 then
+    spd := spd * 3;
+  if KeyState[VK_MENU] < 0 then
+    spd := spd * 3;
+  if KeyState[VK_ESCAPE] < 0 then
+    Close;
+  if KeyState[VK_F2] < 0 then
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+  if KeyState[VK_F3] < 0 then
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+  if KeyState[VK_F4] < 0 then
+    TModel3D.DebugDraw := not TModel3D.DebugDraw;
+  if KeyState[VK_F5] < 0 then
+  begin
+    Mouse.CursorPos := ClientToScreen(FMousePoint);
+    Cursor := crNone;
+  end;
+  if KeyState[VK_F6] < 0 then
+    Cursor := crDefault;
+
+  if KeyState[Ord('W')] < 0 then
+    MoveCamera(0);
+  if KeyState[Ord('S')] < 0 then
+    MoveCamera(Pi);
+  if KeyState[Ord('A')] < 0 then
+    MoveCamera(-Pi/2);
+  if KeyState[Ord('D')] < 0 then
+    MoveCamera(+Pi/2);
+  if KeyState[VK_SPACE] < 0 then
+    Khrono.Paused := not Khrono.Paused;
+  if KeyState[VK_PRIOR] < 0 then
+    CameraLook.z := CameraLook.z + spd;
+  if KeyState[VK_NEXT] < 0 then
+    CameraLook.z := CameraLook.z - spd;
+end;
+
 var
   TotalTime: Int64;
 procedure TForm7.Timer1Timer(Sender: TObject);
@@ -117,6 +139,7 @@ begin
   if pc1 = 0 then begin
     QueryPerformanceCounter(pc1);
   end;
+  CheckKeys;
   Khrono.UISync;
   gfxrender.Render;
   SwapBuffers(Canvas.Handle);

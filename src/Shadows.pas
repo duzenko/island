@@ -9,7 +9,7 @@ var
   ShadowMatrix: TMatrix;
 
 implementation uses
-  gfxrender, graphics, shaders, unit1;
+  gfxrender, graphics, shaders, unit1, Terrain;
 
 var
   FramebufferName: TGLuint = 0;
@@ -23,7 +23,8 @@ begin
   glGenTextures(1, @depthTexture);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, depthTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, ShadowMapSize, ShadowMapSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nil);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, ShadowMapSize, ShadowMapSize,
+    0, GL_DEPTH_COMPONENT, GL_SHORT, nil);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -48,7 +49,7 @@ end;
 
 procedure DrawShadow;
 var
-//  bmp: TBitmap;
+  bmp: TBitmap;
   m_viewport: TRect;
 const
   s = 44;
@@ -65,6 +66,7 @@ begin
   Ortho(s);
   glRotatef(ShadowAngles[0], 1, 0, 0);
   glRotatef(-ShadowAngles[1], 0, 0, 1);
+  glTranslatef(0, 0, -GetHeight(0, 0));
   GetCurrentMatrix(ShadowMatrix);
   SetShaderMatrix('shadowMatrix', ShadowMatrix);
   MatrixMode(true);
@@ -77,14 +79,19 @@ begin
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, m_viewport.Width, m_viewport.Height);
-//  bmp := TBitmap.Create;
-//  with bmp do try
-//    PixelFormat := pf16bit;
-//    Width := ShadowMapSize;
-//    Form1.Image1.Picture.Graphic := bmp;
-//  finally
-//    Free;
-//  end;
+  if Form1.Image1.Visible then begin
+    bmp := TBitmap.Create;
+    with bmp do try
+      PixelFormat := pf16bit;
+      Width := ShadowMapSize;
+      Height := ShadowMapSize;
+      glBindTexture(GL_TEXTURE_2D, depthTexture);
+      glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_SHORT, bmp.ScanLine[bmp.Height-1]);
+      Form1.Image1.Picture.Graphic := bmp;
+    finally
+      Free;
+    end;
+  end;
   glCheckError;
 end;
 

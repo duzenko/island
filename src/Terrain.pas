@@ -25,7 +25,7 @@ function GetHeight(x, y: Single): Single;
 
   function HeightAt(x, y: Integer): Single;
   begin
-    Result := (htbmp.Canvas.Pixels[x, y] and $ff)
+    Result := (htbmp.Canvas.Pixels[x, y] and $ff)*0.5
   end;
 
 var
@@ -35,8 +35,8 @@ begin
   if TerrainSize.cy = 0 then
     Result := 0
   else begin
-    x := (x/WorldSize+0.5)*htbmp.Width;
-    y := (-y/WorldSize+0.5)*htbmp.Height;
+    x := (x/WorldSize+0.5)*(htbmp.Width-1);
+    y := (-y/WorldSize+0.5)*(htbmp.Height-1);
     ix := Floor(x);
     iy := Floor(y);
     h[0, 0] := HeightAt(ix, iy);
@@ -91,9 +91,6 @@ begin
     begin
       glActiveTexture(GL_TEXTURE2);
       glBindTexture(GL_TEXTURE_2D, HeightTexture);
-//      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TerrainSize.cx, TerrainSize.cy, 0,
-//        IfThen(htbmp.PixelFormat = pf8bit, GL_ALPHA, GL_RGB),
-//        GL_UNSIGNED_BYTE, htbmp.ScanLine[htbmp.Height-1]);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TerrainSize.cx, TerrainSize.cy, 0,
         GL_BGRA, GL_UNSIGNED_BYTE, nbmp.ScanLine[nbmp.Height-1]);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -127,11 +124,12 @@ begin
   Khrono.UISync;
   glPushMatrix;
   SetShaderMatrix('shadowMatrix', ShadowMatrix);
+  SetShaderVec3('cameraPos', @CameraLook.x);
   SetShaderFloat('worldSize', WorldSize);
   SetShaderFloat('terrainDetail', TerrainDetail);
   TTextureManager.SwitchTo('..\textures\green-grass-texture.jpg');
   TTextureManager.SwitchTo('..\textures\seamless_stone_cliff_face_mountain_texture_by_hhh316-d68i26q.jpg', GL_TEXTURE3);
-  glDrawArraysInstanced(GL_LINE_STRIP, 0, 2*(TerrainDetail), TerrainDetail{});
+  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2*(TerrainDetail), TerrainDetail{});
   glPopMatrix;
 
   SwitchProgram(prgObjects);

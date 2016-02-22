@@ -2,12 +2,18 @@ unit gfxrender;
 
 interface uses
   Windows, SysUtils, Classes, Graphics, Model3D, dglOpenGL,
-  MilitiaAdventurer, Dialogs, Forms;
+  MilitiaAdventurer, Dialogs, Forms, vectors;
 
 var
   glRC: THandle;
   AspectRatio: Single;
-  CameraLook: record x, y, z, ax, ay: Single end = (z: 1.8e0; ax: -100; ay: -90);
+  CameraLook: record
+    case byte of
+    0:
+      (x, y, z, ax, ay: Single);
+//    1:
+//      (v: TVector);
+  end = (z: 1.8e0; ax: -100; ay: -90);
   Farmhouse, Oldhouse, Wagen: TModel3D;
 
 procedure Render;
@@ -15,7 +21,7 @@ procedure Render;
 procedure RenderScene;
 
 implementation uses
-  Math, Khrono, TextureManager, Shadows, shaders, vectors, unit1, Trees, Terrain;
+  Math, Khrono, TextureManager, Shadows, shaders, unit1, Trees, Terrain;
 
 type
   TTextureEnum = (texSun, texMoon, texWheat);
@@ -121,8 +127,6 @@ end;
 
 procedure RenderScene;
 begin
-  RenderTerrain;
-
   glPushMatrix;
   TranslateOnTerrain(9, -5);
   glScalef(0.3);
@@ -173,6 +177,8 @@ begin
   TTextureManager.Disabled := false;
 
   CameraMoved;
+  RenderTerrain;
+
   RenderScene;
 end;
 

@@ -9,7 +9,6 @@ uses
   Khrono in 'Khrono.pas',
   vectors in 'vectors.pas',
   Model3D in 'Model3D.pas',
-  jsonhelper in 'jsonhelper.pas',
   MilitiaAdventurer in 'MilitiaAdventurer.pas',
   Obstacles in 'Obstacles.pas',
   TextureManager in 'TextureManager.pas',

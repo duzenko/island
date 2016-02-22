@@ -185,6 +185,7 @@ begin
   if MatrixStack.Count > 0 then
     M^ := MatrixStack.Peek^;
   MatrixStack.Push(M);
+  UpdateShaderMatrix;
 end;
 
 procedure glPopMatrix;
