@@ -4,12 +4,12 @@ interface uses
   SysUtils, Classes, dglOpengl, vectors;
 
 var
-  Time: TDateTime = 0.26;
+  Time: TDateTime = 0.46;
   SunPos, MoonPos: record x, y, z, w: Single end;
   SkyColor: Single;
   ShadowAngles: array[0..1] of Single;
   SunAngle: Single;
-  Paused: Boolean = false;
+  Paused: Boolean = True;
 
 procedure Init;
 procedure UISync;

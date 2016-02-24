@@ -19,48 +19,55 @@ implementation uses
 class constructor TTrees.Create;
 begin
   TThread.CreateAnonymousThread(procedure begin
-    Trees := TModel3D.Create('..\models\trees9\untitled.obj');
-    Bushes := TModel3D.Create('..\models\bushes\untitled.obj');
+    Trees := TModel3D.Create('..\models\treelp\xp.obj');
+//    Trees := TModel3D.Create('..\models\trees9\untitled.obj');
+//    Bushes := TModel3D.Create('..\models\bushes\untitled.obj');
   end).Start;
 end;
 
 class procedure TTrees.Draw;
+const
+  p: TFastArray<TGLVectorf3> = ();
 
   procedure DrawRandom(m: TModel3D);
+  begin
+    m.Draw(p);
+  end;
+
+var
+  i, tk: Integer;
   var
     a, r: Single;
-    i: Integer;
-    p: TFastArray<TGLVectorf3>;
     v: TGLVectorf3;
-  begin
-    p.Count := 0;
-    for i := 1 to 22 do begin
-      r := random*99 + 22;
+begin
+  if Trees = nil then
+    Exit;
+  if (p.Count = 0) and (TerrainSize.cy > 0) then
+    for i := 1 to 2222 do begin
+      r := random*999 + 44;
       a := (Random*2+0.4)*Pi;
       v[0] := r*sin(a);
       v[1] := r*cos(a);
       v[2] := GetHeight(v[0], v[1]);
       p.Add(v);
     end;
-    m.Draw(p);
-  end;
 
-var
-  i, tk: Integer;
-begin
-  if Trees = nil then
-    Exit;
   RandSeed := 0;
   glPushMatrix;
-  glScalef(4, 4, 4);
+//  glTranslatef(0, 0, 1);
+  glScalef(9);
   for i := 0 to 9 do begin
-    tk := i;//Random(10);
-      if tk = 0 then
-        tk := 1 shl 6 + 1
-      else
-        tk := 1 shl tk;
-      Trees.TurnMeshes(tk);
+//    tk := i;//Random(10);
+//      if tk = 0 then
+//        tk := 1 shl 6 + 1
+//      else
+//        tk := 1 shl tk;
+//      Trees.TurnMeshes(tk);
+      glDisable(GL_CULL_FACE);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       DrawRandom(Trees);
+      glEnable(GL_CULL_FACE);
   end;
   glPopMatrix;
   if Bushes = nil then

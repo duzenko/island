@@ -94,7 +94,8 @@ object Form1: TForm1
     TabOrder = 2
   end
   object Timer1: TTimer
-    Interval = 11
+    Enabled = False
+    Interval = 1
     OnTimer = Timer1Timer
     Left = 88
     Top = 472

@@ -24,7 +24,7 @@ type
   private
     { Private declarations }
   public
-    FrameTime: Integer;
+    FrameTime: Single;
   end;
 
 var
@@ -103,13 +103,20 @@ begin
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
-//var
-//  i: Integer;
-//  s: Ansistring;
+const {$J+}
+  Frames: DWORD = 0;
+  LastTick: DWORD = 0;
+  fps: DWORD = 0;
 begin
   with ValueListEditor1.Strings do begin
     ValueFromIndex[0] := TimeToStr(Khrono.Time);
-    ValueFromIndex[1] := Format('%d ms', [frametime]);
+    Inc(Frames);
+    if (GetTickCount - LastTick >= 1000) then begin
+      fps := (Frames*1000 div(GetTickCount - LastTick));
+      LastTick := GetTickCount;
+      Frames := 0;
+    end;
+    ValueFromIndex[1] := Format('%.0f ms - %2d fps', [1000/fps, fps]);
     ValueFromIndex[2] := Format('%d %f', [Dbg1, Dbg2]);
     ValueFromIndex[3] := Format('%f', [sunpos.x]);
     ValueFromIndex[4] := Format('%f', [sunpos.z]);

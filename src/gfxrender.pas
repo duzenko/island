@@ -27,7 +27,7 @@ type
   TTextureEnum = (texSun, texMoon, texWheat);
 
 var
-  Wheat: array[-3999..3999, 0..15] of Single;
+  Wheat: array of array[0..15] of Single;
 
 procedure BindTexture(texEnum: TTextureEnum);
 const
@@ -61,15 +61,6 @@ begin
   result := prgObjects*prgTerrain <> 0;
 
   glEnable(GL_DEPTH_TEST);
-  for i := -3999 to 3999 do begin
-      Wheat[i, 0] := random*9;
-      Wheat[i, 1] := random*9;
-      Wheat[i, 7] := 1;
-      Wheat[i, 8] := Wheat[i, 0] + random-0.5;
-      Wheat[i, 9] := Wheat[i, 1] + random-0.5;
-      Wheat[i, 10] := 0.7;
-      Wheat[i, 15] := 1;
-  end;
 end;
 
 procedure RenderSky;
@@ -88,8 +79,8 @@ procedure RenderSky;
   end;
 begin
   SetShaderFloat('lightOverride', 1);
-  glBlendFunc (GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
   glDepthMask(false);
+  glBlendFunc (GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
   glEnable(GL_BLEND);
   glPushMatrix;
 //  glTranslatef(0, 0, 1.7);
@@ -126,6 +117,8 @@ begin
 end;
 
 procedure RenderScene;
+var
+  i: Integer;
 begin
   glPushMatrix;
   TranslateOnTerrain(9, -5);
@@ -147,14 +140,29 @@ begin
   Peasant.Draw;
   TTrees.Draw;
 
+  if (Wheat = nil) and (TerrainSize.cy > 0) then begin  
+    SetLength(Wheat, 8000);
+  for i := 0 to High(Wheat) do begin
+      Wheat[i, 0] := -6+random*9;
+      Wheat[i, 1] := -12+random*9;
+      Wheat[i, 2] := GetHeight(Wheat[i, 0], Wheat[i, 1]);
+      Wheat[i, 7] := 1;
+      Wheat[i, 8] := Wheat[i, 0] + random-0.5;
+      Wheat[i, 9] := Wheat[i, 1] + random-0.5;
+      Wheat[i, 10] := Wheat[i, 2] + 0.7;
+      Wheat[i, 15] := 1;
+  end;
+  end;
+  if Wheat <> nil then begin  
   BindTexture(texWheat);
-  glPushMatrix;
-  glTranslatef(-6, -12, 0);
-  SetShaderPointer('vpos', 3, 32, @Wheat);
-  SetShaderPointer('vtex', 2, 32, @Wheat[3]);
-  SetShaderPointer('vnorm', 3, 32, @Wheat[5]);
-  glDrawArrays(GL_LINES, 0, SizeOf(Wheat) div 64);
-  glPopMatrix;
+//  glPushMatrix;
+//  glTranslatef(-6, -12, 0);
+  SetShaderPointer('vpos', 3, 32, @Wheat[0]);
+  SetShaderPointer('vtex', 2, 32, @Wheat[0][3]);
+  SetShaderPointer('vnorm', 3, 32, @Wheat[0][5]);
+  glDrawArrays(GL_LINES, 0, Length(Wheat)*2);
+//  glPopMatrix;
+  end;
 end;
 
 procedure Render;

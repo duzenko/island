@@ -6,6 +6,10 @@ interface uses
 var
   TerrainSize: TSize;
 
+const
+  TerrainDetail = 399;
+  WorldSize = 9990;
+
 procedure RenderTerrain;
 procedure TranslateOnTerrain(x, y: Single);
 function GetHeight(x, y: Single): Single;
@@ -16,10 +20,6 @@ implementation uses
 var
   HeightTexture: TGLuint;
   htbmp: TBitmap;
-
-const
-  TerrainDetail = 399;
-  WorldSize = 9990;
 
 function GetHeight(x, y: Single): Single;
 

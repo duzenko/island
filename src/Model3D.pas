@@ -230,6 +230,8 @@ var
 begin
   if Self = nil then
     Exit;
+  if pos.Count = 0 then
+    Exit;
   if vbos[0] = 0 then begin
     glGenBuffers (4, @vbos[0]);
     glBindBuffer (GL_ARRAY_BUFFER, vbos[0]);

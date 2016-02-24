@@ -25,14 +25,18 @@ type
   end;
 
 implementation uses
-  unit1;
+  unit1, Math;
 
 procedure UploaderProc(bmp: TBitmap);
 var
   aniso: Single;
 begin
   with bmp do
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_BGR, GL_UNSIGNED_BYTE, ScanLine[Height-1]);
+    glTexImage2D(GL_TEXTURE_2D, 0,
+      IfThen(PixelFormat = pf24bit, GL_RGB, GL_RGBA),
+      Width, Height, 0,
+      IfThen(PixelFormat = pf24bit, GL_BGR, GL_BGRA),
+      GL_UNSIGNED_BYTE, ScanLine[Height-1]);
   glGenerateMipmap(GL_TEXTURE_2D);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);

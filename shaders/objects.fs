@@ -9,14 +9,15 @@ in vec4 spos, wpos;
 in vec3 fnorm;
 in vec2 ftex;
 
-out vec3 color;
+out vec4 color;
 
 const vec3 SunLight = {1, 1, 0.9};
 const vec3 MoonLight = {0.25, 0.25, 0.35};
 
 void main(){
   float mz = 0.1*(sunPos.z+2);
-  vec3 smPos, smLight, ambient = vec3(mz, mz, 1.3*mz);
+  vec3 smPos, smLight;
+  vec4 ambient = vec4(mz, mz, 1.3*mz, 1);
   if (sunPos.z < 0) {
     smPos = -sunPos;
     smLight = MoonLight*min(1, 22*smPos.z*smPos.z);
@@ -26,7 +27,7 @@ void main(){
   }
 
   if (lightOverride == 1)
-    color = texture(material, ftex).rgb;
+    color = texture(material, ftex).rgba;
   else {
     vec3 sposb = spos.xyz*0.5+vec3(0.5, 0.5, 0.5);
     float shadowZ;
@@ -40,7 +41,9 @@ void main(){
       brightness = 0;
     else
       brightness = brightness * shadowZ;
-    color = texture(material, ftex).rgb * (smLight * brightness + ambient);
+    color = texture(material, ftex).rgba * (vec4(smLight, 1) * brightness + ambient);
 //    color = fnorm;
+    if (color.a < 0.1)
+      discard;
   }
 }

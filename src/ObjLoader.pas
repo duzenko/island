@@ -100,11 +100,14 @@ begin
     P1 := P;
     while P^ <> #0 do begin
       if P^ = Delimiter then begin
-        FStrings.Add(p1);
+        if p<>p1 then
+          FStrings.Add(p1);
         p^ := #0;
         Inc(P);// := NextChar(P);
         P1 := P;
       end;
+      if p^ = #0 then
+        Break;
       if P^ <> Delimiter then
         Inc(P);// := NextChar(P);
     end;
@@ -255,6 +258,8 @@ var
       for i := 0 to FLines.Count-1 do begin
         if Application = nil then
           Exit;
+        if FLines[i]^ = 'f' then
+          Now;
         Line.SetDelimitedText(FLines[i]);
         if Line.Count = 0 then
           Continue;
@@ -331,10 +336,11 @@ var
         for i := 0 to FLines.Count-1 do begin
           Line.SetDelimitedText(FLines[i]);
           Bone := BoneByName(Line[1]);
-          Bone.Parent := pmodelbone(BoneByName(Line[2]));
+          if Line.Count = 19 then
+            Bone.Parent := pmodelbone(BoneByName(Line[2]));
           v16 := Bone.Frames.Add;
           for j := 0 to 15 do
-            if TextToFloat(Line[3+j], d) then
+            if TextToFloat(Line[Line.Count-16+j], d) then
               v16[j] := d;
         end;
       finally
