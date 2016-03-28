@@ -1,7 +1,7 @@
 program island;
 
 uses
-  Vcl.Forms,
+  Forms,
   Unit7 in 'Unit7.pas' {Form7},
   gfxrender in 'gfxrender.pas',
   Terrain in 'Terrain.pas',

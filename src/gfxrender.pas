@@ -52,9 +52,11 @@ end;
 
 function Init: Boolean;
 var
-  i: Integer;
+  tid: Cardinal;
+//  i: Integer;
 begin
-  TThread.CreateAnonymousThread(LoadModels).Start;
+  BeginThread(nil, 0, @loadModels, nil, 0, tid);
+//  TThread.CreateAnonymousThread(LoadModels).Start;
   glPointSize(7);
   prgTerrain := LoadGpuProgram('terrain');
   prgObjects := LoadGpuProgram('objects');

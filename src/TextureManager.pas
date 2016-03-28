@@ -2,7 +2,7 @@ unit TextureManager;
 
 interface uses
   Windows, SysUtils, Classes, dglOpengl, Graphics, Jpeg, PngImage,
-  Generics.Collections, Forms;
+  Forms, Contnrs;
 
 type
   TTextureRecord = class
@@ -10,28 +10,43 @@ type
     FileSize, TextureId, TexUnit: Integer;
     Loaded: Boolean;
   end;
-  TTextureList = class(TObjectList<TTextureRecord>)
+  TTextureList = class(TObjectList)
+  private
+    function GetItems(index: Integer): TTextureRecord; 
+    procedure SetItems(index: Integer; const Value: TTextureRecord);
+    procedure UploaderProc;
+  public
     function IndexOf(const fn: string): Integer;
     function Add(const fn: string; TexUnit: Integer): Integer;
+    property Items[index: Integer]: TTextureRecord read GetItems write SetItems; default;
   end;
 
   TTextureManager = class
-    class constructor Create;
     class procedure SwitchTo(const fn: string; TexUnit: Integer = GL_TEXTURE0);
   class var
-    Last: string;
-    List: TTextureList;
     Disabled: Boolean;
   end;
 
 implementation uses
   unit1, Math;
 
-procedure UploaderProc(bmp: TBitmap);
+  var
+    Last: string;
+    List: TTextureList;
+
+var
+  UploaderProcbmp: TBitmap;
+  UploaderProctr: TTextureRecord;
+procedure TTextureList.UploaderProc();
 var
   aniso: Single;
 begin
-  with bmp do
+  with UploaderProctr do begin
+      glActiveTexture(TexUnit);
+      glBindTexture(GL_TEXTURE_2D, TextureId);
+      Form1.CheckListBox1.Items.Add('upload ' + IntToStr(FileSize div 1024) + ' ' + FileName);
+  end;
+  with UploaderProcbmp do
     glTexImage2D(GL_TEXTURE_2D, 0,
       IfThen(PixelFormat = pf24bit, GL_RGB, GL_RGBA),
       Width, Height, 0,
@@ -56,20 +71,21 @@ begin
     pic.LoadFromFile(tr.FileName);
     if Application = nil then
       Exit;
-    bmp.Assign(pic.Graphic);
+    if pic.Graphic is TPNGObject then begin
+      bmp.Width := pic.Width;
+      bmp.Height := pic.Height;
+      bmp.Canvas.Brush.Color := clBlack;
+      bmp.Canvas.FillRect(bmp.Canvas.ClipRect);
+      bmp.Canvas.Draw(0, 0, pic.Graphic);
+    end else
+      bmp.Assign(pic.Graphic);
   finally
     pic.Free;
   end;
-  TThread.CreateAnonymousThread(procedure begin
-    TThread.Synchronize(nil, procedure
-    begin
-      glActiveTexture(tr.TexUnit);
-      glBindTexture(GL_TEXTURE_2D, tr.TextureId);
-      Form1.CheckListBox1.Items.Add('upload ' + IntToStr(tr.FileSize div 1024) + ' ' + tr.FileName);
-      UploaderProc(bmp);
-    end);
-    bmp.Free;
-  end).Start;
+  UploaderProctr := tr;
+  UploaderProcbmp := bmp;
+  TThread.Synchronize(nil, List.UploaderProc);
+  bmp.Free;
 end;
 
 procedure LoaderThread;
@@ -79,7 +95,7 @@ var
 begin
   repeat
     tr := nil;
-    with TTextureManager.List do
+    with List do
       for i := 0 to Count-1 do
         if not Items[i].Loaded then begin
           tr := Items[i];
@@ -89,17 +105,10 @@ begin
       LoadTexture(tr)
     else
       Sleep(1);
-  until TTextureManager.List=nil;
+  until List=nil;
 end;
 
 { TTextureManager }
-
-class constructor TTextureManager.Create;
-begin
-  list := TTextureList.Create;
-  list.OwnsObjects := true;
-  TThread.CreateAnonymousThread(LoaderThread).Start;
-end;
 
 class procedure TTextureManager.SwitchTo(const fn: string; TexUnit: Integer = GL_TEXTURE0);
 var
@@ -143,6 +152,11 @@ begin
   Result := inherited Add(r);
 end;
 
+function TTextureList.GetItems(index: Integer): TTextureRecord;
+begin
+  result := TTextureRecord(inherited Items[index]);
+end;
+
 function TTextureList.IndexOf(const fn: string): Integer;
 var
   i: Integer;
@@ -155,9 +169,20 @@ begin
     end;
 end;
 
+procedure TTextureList.SetItems(index: Integer; const Value: TTextureRecord);
+begin
+  inherited;
+end;
+
+var
+  tid: Cardinal;
 initialization
+  list := TTextureList.Create;
+  list.OwnsObjects := true;
+//  TThread.CreateAnonymousThread(LoaderThread).Start;
+  BeginThread(nil, 0, @LoaderThread, nil, 0, tid);
 
 finalization
-  FreeAndNil(TTextureManager.List);
+  FreeAndNil(List);
 
 end.

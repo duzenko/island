@@ -24,7 +24,7 @@ end;
 
 procedure TimeProc;
 var
-  s, c: Single;
+  s, c: Extended;
 begin
   while true do begin
     if not Paused then
@@ -49,8 +49,11 @@ begin
 end;
 
 procedure init;
+var
+  tid: Cardinal;
 begin
-  TThread.CreateAnonymousThread(TimeProc).Suspended := false;
+  BeginThread(nil, 0, @TimeProc, nil, 0, tid);
+//  TThread.CreateAnonymousThread(TimeProc).Suspended := false;
 end;
 
 end.

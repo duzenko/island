@@ -30,18 +30,6 @@ float getHeight(vec2 texCoords) {
   return (255-texture(heights, texCoords).w*255)*0.5;
 }
 
-const vec2 dir[4] = {vec2(1,1),vec2(-1,1),vec2(-1,-1),vec2(1,-1)};
-vec3 vpos2(int vertexID, int instanceID) {
-  float v = (vertexID+vertexID%2)/2;
-  v *= v*0.1;
-  vec2 index;
-  if (vertexID%2==1)
-    index = v*dir[instanceID];
-  else
-    index = v*dir[(instanceID+1)%4];
-  return vec3(index, getHeight(vec2(0.5, 0.5)+index/worldSize)*(-255)+255);
-}
-
 vec3 vpos1(int vertexID, int instanceID) {
   vec2 index = vec2(vertexID-(vertexID%1+instanceID%2)*1, instanceID-vertexID%2);
   index = vec2(index)-vec2(0.5, 0.5)*terrainDetail;
@@ -57,26 +45,34 @@ vec3 vpos1(int vertexID, int instanceID) {
   return vec3(index, getHeight(vec2(0.5, 0.5)+index/worldSize)*(-255)+255);
 }
 
-vec3 vpos3(int vertexID, int instanceID) {
-  vec2 index = vec2((vertexID-vertexID%2)/2, instanceID - vertexID%2);
-  index = vec2(index)-vec2(0.5, 0.5)*terrainDetail;
-  vec2 mag = abs((2*index/terrainDetail/terrainDetail)*worldSize);
-  index *= max(vec2(1, 1), mag);
-  index += cameraPos.xy;
-  return vec3(index, getHeight(vec2(0.5, 0.5)+index/worldSize));
+const vec2 dir[4] = {vec2(1,1),vec2(-1,1),vec2(-1,-1),vec2(1,-1)};
+vec3 vpos2(int vertexID, int instanceID) {
+  float v = (vertexID+vertexID%2)/2;
+  v *= v*0.1;
+  vec2 index;
+  if (vertexID%2==1)
+    index = v*dir[instanceID];
+  else
+    index = v*dir[(instanceID+1)%4];
+  return vec3(index, getHeight(vec2(0.5, 0.5)+index/worldSize)*(-255)+255);
 }
 
-vec3 vposFor(int vertexID, int instanceID) {
-  return vpos3(vertexID, instanceID);
+vec2 vpos3(int vertexID, int instanceID) {
+  vec2 index = vec2((vertexID-vertexID%2)/2, instanceID - vertexID%2);
+  index = index-vec2(0.5, 0.5)*terrainDetail;
+//  vec2 mag = abs((2*index/terrainDetail/terrainDetail)*worldSize);
+//  index *= max(vec2(1, 1), mag);
+//  index += round(cameraPos.xy);
+  return index;//vec3());
 }
 
 void main() {
-  vec3 vpos = vposFor(gl_VertexID, gl_InstanceID),
-    neighbor1=vposFor(gl_VertexID-1, gl_InstanceID),
-    neighbor2=vposFor(gl_VertexID-2, gl_InstanceID);
-  wpos = modelMatrix*vec4(vpos, 1);
+  wpos = vec4(vpos3(gl_VertexID, gl_InstanceID), 0, 1);
+  wpos = modelMatrix*wpos;
+  wpos.xy += cameraPos.xy;
+  wpos.z = cameraPos.z + getHeight(vec2(0.5, 0.5)+wpos.xy/worldSize);
   vec4 fpos = viewProjectionMatrix*wpos;
   spos = shadowMatrix*wpos;
-  ftex = vpos.xy*0.1;
+  ftex = wpos.xy*0.1;
   gl_Position = fpos;
 }

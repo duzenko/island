@@ -1,9 +1,9 @@
 unit Unit1;
 
 interface uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Grids,
-  Vcl.ValEdit, Vcl.ComCtrls, Vcl.CheckLst, Vcl.Menus, dglOpengl, ShellApi;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, StdCtrls, ExtCtrls, Grids,
+  ValEdit, ComCtrls, CheckLst, Menus, dglOpengl, ShellApi;
 
 type
   TForm1 = class(TForm)
@@ -33,13 +33,13 @@ var
   Dbg2: Single;
 
 implementation uses
-  Unit7, Khrono, gfxrender, Model3D, dbxjson, StrUtils, MilitiaAdventurer, shaders;
+  Unit7, Khrono, gfxrender, Model3D, StrUtils, MilitiaAdventurer, shaders;
 
 {$R *.dfm}
 
 procedure TForm1.CheckListBox1ClickCheck(Sender: TObject);
 begin
-  Peasant.Model3d.Bones[CheckListBox1.ItemIndex].DebugDraw := CheckListBox1.Checked[CheckListBox1.ItemIndex];
+//  Peasant.Model3d.Bones[CheckListBox1.ItemIndex].DebugDraw := CheckListBox1.Checked[CheckListBox1.ItemIndex];
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -50,14 +50,14 @@ begin
   Form7.SetBounds(0, 0, Left, Screen.Height);
 //  for I := 0 to High(House.faces) do
 //    TreeView1.Items.AddChild(nil, IntToStr(i));
-  with TStringStream.Create do try
+//  with TStringStream.Create do try
 //    LoadFromFile('D:\temp\Militia-Adventurer-RIGGED.json');
 //    LoadFromFile('D:\temp\untitled.json');
 //    AddItem(TJSONObject(TJSONObject.ParseJSONValue(DataString)), nil, 'root');
 //    TreeView1.Items[0].Expand(false);
-  finally
-    Free;
-  end;
+//  finally
+//    Free;
+//  end;
 end;
 
 procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word;

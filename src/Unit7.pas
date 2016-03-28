@@ -1,9 +1,9 @@
 unit Unit7;
 
 interface uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  gfxrender, dglOpenGL, Vcl.ExtCtrls;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs,
+  gfxrender, dglOpenGL, ExtCtrls;
 
 type
   TForm7 = class(TForm)
@@ -80,8 +80,10 @@ var
   procedure MoveCamera(t: Single);
   var
     mv: tvector;
+    s, c: Extended;
   begin
-    SinCos(DegToRad(-CameraLook.ax)+t, mv.x, mv.y);
+    SinCos(DegToRad(-CameraLook.ax)+t, s, c);
+    mv.x := s; mv.y := c;
     CameraLook.x := CameraLook.x + spd*mv.x;
     CameraLook.y := CameraLook.y + spd*mv.y;
   end;

@@ -7,7 +7,6 @@ var
   TerrainSize: TSize;
 
 const
-  TerrainDetail = 399;
   WorldSize = 9990;
 
 procedure RenderTerrain;
@@ -52,6 +51,28 @@ begin
   glTranslatef(x, y, GetHeight(x, y));
 end;
 
+type
+  TDummy = class
+    procedure procedureSync;
+  end;
+
+{ TDummy }
+
+var
+  nbmp: TBitmap;
+procedure TDummy.procedureSync;
+begin
+      glActiveTexture(GL_TEXTURE2);
+      glBindTexture(GL_TEXTURE_2D, HeightTexture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TerrainSize.cx, TerrainSize.cy, 0,
+        GL_BGRA, GL_UNSIGNED_BYTE, nbmp.ScanLine[nbmp.Height-1]);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glActiveTexture(GL_TEXTURE0);
+end;
+
 procedure LoadMap;
 const
 //  cFileName = '..\maps\qr7YY.jpg';
@@ -60,7 +81,6 @@ const
 //  cFileName = '..\maps\1.bmp';
 var
   pic: TPicture;
-  nbmp: TBitmap;
   y: Integer;
   x: Integer;
   pq: PRGBQuadArray;
@@ -87,18 +107,9 @@ begin
     end;
     TerrainSize.cx := htbmp.Width;
     TerrainSize.cy := htbmp.Height;
-    TThread.Synchronize(nil, procedure
-    begin
-      glActiveTexture(GL_TEXTURE2);
-      glBindTexture(GL_TEXTURE_2D, HeightTexture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TerrainSize.cx, TerrainSize.cy, 0,
-        GL_BGRA, GL_UNSIGNED_BYTE, nbmp.ScanLine[nbmp.Height-1]);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      glActiveTexture(GL_TEXTURE0);
-    end);
+    TThread.Synchronize(nil, TDummy(nil).procedureSync);
+//    begin
+//    end);
   finally
     nbmp.Free;
     pic.Free;
@@ -113,25 +124,46 @@ const
     -1e5, +1e5, 0.5, -1e4, +1e4, 0, 0, 1,
     +1e5, +1e5, 0.5, +1e4, +1e4, 0, 0, 1
   );
+  TerrainDetail = 200;
+
+  procedure DrawChunk(x, y: Single; s, sy: Integer);
+  var
+    v: TVector;
+  begin
+    v.x := Floor(x/s)*s;
+    v.y := Floor(y/s)*s;
+//    v.z := 0.1*(1-s);
+    SetShaderVec3('cameraPos', @v);
+    glPushMatrix;
+    glScalef(s);
+    if 1 = sy then
+      glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2*(TerrainDetail+2), TerrainDetail div sy + 2)
+    else
+      glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 1*(TerrainDetail+2), TerrainDetail div sy + 2);
+    glPopMatrix;
+  end;
+
+var
+  tid: Cardinal;
 begin
   if HeightTexture = 0 then begin
     glGenTextures(1, @HeightTexture);
-    TThread.CreateAnonymousThread(LoadMap).Start;
+    BeginThread(nil, 0, @LoadMap, nil, 0, tid);
   end;
   if TerrainSize.cy = 0 then
     Exit;
   SwitchProgram(prgTerrain);
   Khrono.UISync;
-  glPushMatrix;
   SetShaderMatrix('shadowMatrix', ShadowMatrix);
-  SetShaderVec3('cameraPos', @CameraLook.x);
   SetShaderFloat('worldSize', WorldSize);
   SetShaderFloat('terrainDetail', TerrainDetail);
   TTextureManager.SwitchTo('..\textures\green-grass-texture.jpg');
   TTextureManager.SwitchTo('..\textures\seamless_stone_cliff_face_mountain_texture_by_hhh316-d68i26q.jpg', GL_TEXTURE3);
-  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2*(TerrainDetail), TerrainDetail{});
-  glPopMatrix;
-
+  DrawChunk(CameraLook.x, CameraLook.y, 1, 1);
+  DrawChunk(CameraLook.x+TerrainDetail*4.50, CameraLook.y+TerrainDetail*3.5, 8, 8);
+  DrawChunk(CameraLook.x-TerrainDetail*0.50+8, CameraLook.y+TerrainDetail*3.5, 8, 8);
+  DrawChunk(CameraLook.x, CameraLook.y-TerrainDetail*4.50, 8, 1);
+  DrawChunk(CameraLook.x, CameraLook.y+TerrainDetail*4.50, 8, 1);
   SwitchProgram(prgObjects);
   TTextureManager.SwitchTo('..\textures\Tileable classic water texture.jpg');
   SetShaderPointer('vpos', 3, 32, @vdata[0]);

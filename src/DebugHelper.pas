@@ -5,6 +5,8 @@ interface uses
 
 implementation
 
+function IsDebuggerPresent: boolean; stdcall; external 'kernel32.dll';
+
 procedure DebugProc;
 begin
   if not IsDebuggerPresent then
@@ -16,7 +18,10 @@ begin
   until false;
 end;
 
+var
+  tid: Cardinal;
+
 initialization
-  TThread.CreateAnonymousThread(DebugProc).Start;
+  BeginThread(nil, 0, @DebugProc, nil, 0, tid);
 
 end.

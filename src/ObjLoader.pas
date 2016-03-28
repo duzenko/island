@@ -1,7 +1,7 @@
 unit ObjLoader;
 
 interface uses
-  AnsiStrings, SysUtils, Classes, Model3D, dglOpengl, Forms;
+  SysUtils, Classes, Model3D, dglOpengl, Forms, Vectors;
 
 type
   TObjLoader = class helper for TModel3D
@@ -15,12 +15,12 @@ implementation uses
   unit1;
 
 type
-  TIndexVector = TGLVectori3;
-  TStringListX = class
+//  TIndexVector = TGLVectori3;
+  TStringListX = class(TFastArray)
   private
-    FStrings: TFastArray<PAnsiChar>;
+//    FStrings: TStringArray;
+    function ElementSize: Integer; override;
     function GetString(i: Integer): PAnsiChar;
-    function GetCount: Integer;
     function GetWideString(i: Integer): String;
   public
     Delimiter: AnsiChar;
@@ -30,12 +30,11 @@ type
     destructor Destroy; override;
     property Strings[i: Integer]: PAnsiChar read GetString; default;
     property WideStrings[i: Integer]: String read GetWideString;
-    property Count: Integer read GetCount;
   end;
 
 function TextToFloat(S: PAnsiChar; var Value: Extended): Boolean;
 begin
-  Result := AnsiStrings.TextToFloat(S, Value, fvExtended);
+  Result := SysUtils.TextToFloat(S, Value, fvExtended);
 end;
 
 function ValLong(S: PAnsiChar): Longint;
@@ -71,14 +70,14 @@ begin
   inherited;
 end;
 
-function TStringListX.GetCount: Integer;
+function TStringListX.ElementSize: Integer;
 begin
-  Result := FStrings.Count;
+  Result := 4;
 end;
 
 function TStringListX.GetString(i: Integer): PAnsiChar;
 begin
-  Result := FStrings[i]^;
+  Result := PAnsiChar(inherited Items[i]^);
 end;
 
 function TStringListX.GetWideString(i: Integer): String;
@@ -93,15 +92,14 @@ const
   StrictDelimiter = true;
   QuoteChar = '"';
   FStrictDelimiter = StrictDelimiter;
-//  Delimiter = ' ';
 begin
-    FStrings.Count := 0;
+    Count := 0;
     P := PAnsiChar(Value);
     P1 := P;
     while P^ <> #0 do begin
       if P^ = Delimiter then begin
         if p<>p1 then
-          FStrings.Add(p1);
+          Add(p1);
         p^ := #0;
         Inc(P);// := NextChar(P);
         P1 := P;
@@ -112,7 +110,7 @@ begin
         Inc(P);// := NextChar(P);
     end;
     if P1<>P then
-      FStrings.Add(p1);
+      Add(p1);
 end;
 
 procedure TObjLoader.LoadMtl(const fn: string);
@@ -129,11 +127,11 @@ begin
       if Line[0] = 'newmtl' then
         mtlName := String(Line[1]);
       if Line[0] = 'map_Kd' then begin
-        MtlStyles.Values[mtlName] := ExtractFilePath(fn) + UTF8ToWideString(Line.CombineFrom(1));
-        TThread.Synchronize(nil, procedure begin
-          if Form1 <> nil then
-            Form1.CheckListBox1.Items.Add('add ' + fn);
-        end);
+        MtlStyles.Values[mtlName] := ExtractFilePath(fn) + UTF8Decode(Line.CombineFrom(1));
+//        TThread.Synchronize(nil, procedure begin
+//          if Form1 <> nil then
+//            Form1.CheckListBox1.Items.Add('add ' + fn);
+//        end);
       end;
     end;
   finally
@@ -144,13 +142,13 @@ end;
 
 procedure TObjLoader.LoadFromObj(const fn: string);
 var
-  Mesh: PModelMesh;
-  Bone: TBoneArray.P;
+  Mesh: TModelMesh;
+  Bone: TModelBone;
   Line, Pack: TStringListX;
   d: Extended;
-  ObjVertices, ObjNormals: TFastArray<TGLVectorf3>;
-  ObjTexcoords: TFastArray<TGLVectorf2>;
-  ReindexMap: TFastArray<Integer>;
+  ObjVertices, ObjNormals: TFloat3Array;
+  ObjTexcoords: TFloat2Array;
+  ReindexMap: TIntegerArray;
 
 procedure AddVertex(s1, s2, s3: PAnsiChar);
 var
@@ -195,10 +193,10 @@ end;
   procedure AddFaces();
   var
     vi, ni, ti, j: Integer;
-    poly: PIndexArray;
+    poly: TIntegerArray;
   begin
     if Line.Count = 4 then
-      poly := @Mesh.Triangles
+      poly := Mesh.Triangles
     else
       Mesh.AddPoly(poly);
     with Pack do begin
@@ -208,11 +206,11 @@ end;
         ti := ValLong(Strings[1])-1;
         ni := ValLong(Strings[2])-1;
 //        ReindexMap.SetMinSize(vi+1);
-        ReindexMap.Add^ := vi;
-        poly.Add^ := Vertices.Count;
-        Vertices.Add^ := ObjVertices[vi]^;
-        TexCoords.Add^ := ObjTexCoords[ti]^;
-        Normals.Add^ := ObjNormals[ni]^;
+        ReindexMap.Add(vi);
+        poly.Add(Vertices.Count);
+        Vertices.Add(ObjVertices[vi]^);
+        TexCoords.Add(ObjTexCoords[ti]^);
+        Normals.Add(ObjNormals[ni]^);
       end;
     end;
   end;
@@ -220,18 +218,23 @@ end;
   procedure AddWeights();
   var
     i, j, ObjIndex: Integer;
+    w: TWeight;
   begin
     with Pack do begin
       for j := 1 to Line.Count-1 do begin
         SetDelimitedText(Line[j]);
         for I := 0 to ReindexMap.Count-1 do begin
           ObjIndex := ValLong(Strings[0]);
-          if ReindexMap[i]^ = ObjIndex then
-            with Bone.Weights.Add^ do begin
+          if ReindexMap[i] = ObjIndex then begin
+            with w do begin
               VertexIndex := i;
               if TextToFloat(Strings[1], d) then
-                Weight := d;
+                Weight := d
+              else
+                Weight := 0;
             end;
+            Bone.Weights.Add(w);
+          end;
         end;
       end;
     end;
@@ -245,7 +248,7 @@ end;
 var
   FStorage: PAnsiChar;
   FLines: TStringListX;
-  v16: TVectorf16Array.P;
+  v16: TMatrix;
 
   procedure LoadObj;
   var
@@ -273,7 +276,7 @@ var
           Bone := BoneByName(Line[1]);
           for j := 0 to 15 do
             if TextToFloat(Line[2+j], d) then
-              TVectorf16(Bone.ObjectMatrix)[j] := d;
+              Bone.ObjectMatrix.v16[j] := d;
           Mesh.HasBones := true;
         end;
         if Line[0] = 'vw' then
@@ -302,8 +305,8 @@ var
       if not FileExists(fn + 'a') then
         Exit;
       with TFileStream.Create(fn+'a', fmOpenRead + fmShareDenyNone) do try
-        AnsiStrings.StrDispose(FStorage);
-        FStorage := AnsiStrings.AnsiStrAlloc(Size);
+        StrDispose(FStorage);
+        FStorage := StrAlloc(Size);
         Read(FStorage^, Size);
         FLines.SetDelimitedText(FStorage);
         for i := 0 to FLines.Count-1 do begin
@@ -311,10 +314,10 @@ var
           Mesh := MeshByName(Line.WideStrings[1]);
           if Mesh = nil then
             Continue;
-          v16 := Mesh.Animations.Add;
           for j := 0 to 15 do
             if TextToFloat(Line[2+j], d) then
-              v16[j] := d;
+              v16.v16[j] := d;
+          Mesh.Animations.Add(v16);
         end;
       finally
         Free;
@@ -324,24 +327,24 @@ var
   procedure LoadObjB;
   var
     i, j: Integer;
-    Bone: TBoneArray.P;
+    Bone: TModelBone;
   begin
       if not FileExists(fn + 'b') then
         Exit;
       with TFileStream.Create(fn+'b', fmOpenRead + fmShareDenyNone) do try
-        AnsiStrings.StrDispose(FStorage);
-        FStorage := AnsiStrings.AnsiStrAlloc(Size);
+        StrDispose(FStorage);
+        FStorage := StrAlloc(Size);
         Read(FStorage^, Size);
         FLines.SetDelimitedText(FStorage);
         for i := 0 to FLines.Count-1 do begin
           Line.SetDelimitedText(FLines[i]);
           Bone := BoneByName(Line[1]);
           if Line.Count = 19 then
-            Bone.Parent := pmodelbone(BoneByName(Line[2]));
-          v16 := Bone.Frames.Add;
+            Bone.Parent := BoneByName(Line[2]);
           for j := 0 to 15 do
             if TextToFloat(Line[Line.Count-16+j], d) then
-              v16[j] := d;
+              v16.v16[j] := d;
+          Bone.Frames.Add(v16);
         end;
       finally
         Free;
@@ -349,9 +352,14 @@ var
   end;
 
 begin
+  ObjVertices := TFloat3Array.Create;
+  ObjNormals := TFloat3Array.Create;
+  ObjTexcoords := TFloat2Array.Create;
+  ReindexMap := TIntegerArray.Create;
+
   Mesh := nil;
   with TFileStream.Create(fn, fmOpenRead + fmShareDenyNone) do try
-    FStorage := AnsiStrings.AnsiStrAlloc(Size);
+    FStorage := StrAlloc(Size);
     Read(FStorage^, Size);
   finally
     Free;
@@ -373,8 +381,12 @@ begin
     end;
   finally
     FLines.Free;
-    AnsiStrings.StrDispose(FStorage);
+    StrDispose(FStorage);
   end;
+  ObjVertices.Free;
+  ObjNormals.Free;
+  ObjTexcoords.Free;
+  ReindexMap.Free;
 end;
 
 end.

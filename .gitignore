@@ -10,3 +10,6 @@ dcuWin32/
 dcuWin64/
 binWin64/
 shaders/__history/
+*.dcu
+*.drc
+*.res

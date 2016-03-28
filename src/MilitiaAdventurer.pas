@@ -1,7 +1,7 @@
 unit MilitiaAdventurer;
 
 interface uses
-  Windows, SysUtils, Classes, Model3D, dglOpengl, Vectors;
+  Windows, SysUtils, Classes, Model3D, dglOpengl, Vectors, Forms;
 
 type
   TRoutine = (Hail, Drill, Field, Reflex, Sleep);
@@ -14,7 +14,7 @@ type
     Location, Look: TVector;
     Routine: TRoutine;
     Animation: TAnimation;
-    class constructor Create;
+//    class procedure constructorCreate;
     constructor Create;
     destructor Destroy; override;
     procedure Draw;
@@ -80,11 +80,18 @@ const
     Cheering, Attack1, UseShovel, HoldScythe, Idle
   );
 
+type
+  TAIThread = class(TThread)
+    FOwner: TMilitiaAdventurer;
+  protected
+    procedure Execute; override;
+  end;
+
 { TMilitiaAdventurer }
 
 procedure TMilitiaAdventurer.AI;
 var
-  Time: TTime;
+  Time: TDateTime;
 
   procedure GetRoutine;
   var
@@ -107,7 +114,7 @@ begin
   GetRoutine;
   Location := RoutineLoc[Routine].Loc;
   Look := RoutineLoc[Routine].Look;
-  while not TThread.CheckTerminated do begin
+  while (Application <> nil) and not Application.Terminated do begin
     GetRoutine;
     if not Paused then begin
       Dir := RoutineLoc[Routine].Loc - Location;
@@ -130,17 +137,13 @@ begin
   end;
 end;
 
-class constructor TMilitiaAdventurer.Create;
-begin
-  Model3D := TModel3D.Create('..\models\peasant\model.obj');
-end;
-
 constructor TMilitiaAdventurer.Create;
 begin
   Location := RoutineLoc[Sleep].Loc;
-  AIThread := TThread.CreateAnonymousThread(AI);
+  AIThread := TAIThread.Create(true);
+  TAIThread(AIThread).FOwner := Self;
   AIThread.FreeOnTerminate := true;
-  AIThread.Start;
+  AIThread.Resume
 end;
 
 destructor TMilitiaAdventurer.Destroy;
@@ -171,7 +174,16 @@ begin
   glPopMatrix;
 end;
 
+{ TAIThread }
+
+procedure TAIThread.Execute;
+begin
+  inherited;
+  FOwner.AI;
+end;
+
 initialization
+  TMilitiaAdventurer.Model3D := TModel3D.Create('..\models\peasant\model.obj');
 
 finalization
   FreeAndNil(Peasant);

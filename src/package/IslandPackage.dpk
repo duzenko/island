@@ -1,0 +1,37 @@
+package IslandPackage;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl;
+
+contains
+  dglOpenGL in '..\dglOpenGL.pas',
+  pngimage in '..\..\..\..\pos\components\jedi\jvcl\devtools\MakePNG\pngimage.pas',
+  zlibpas in '..\..\..\..\pos\components\jedi\jvcl\devtools\MakePNG\zlibpas.pas',
+  pnglang in '..\..\..\..\pos\components\jedi\jvcl\devtools\MakePNG\pnglang.pas';
+
+end.

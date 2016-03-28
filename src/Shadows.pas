@@ -52,7 +52,7 @@ var
   bmp: TBitmap;
   m_viewport: TRect;
 const
-  s = 144;
+  s = 66;
 begin
   if FramebufferName = 0 then
     Init;
@@ -66,7 +66,7 @@ begin
   Ortho(s);
   glRotatef(ShadowAngles[0], 1, 0, 0);
   glRotatef(-ShadowAngles[1], 0, 0, 1);
-  glTranslatef(0, 0, -GetHeight(0, 0));
+  glTranslatef(-CameraLook.x, -CameraLook.y, -GetHeight(CameraLook.x, CameraLook.y));
   GetCurrentMatrix(ShadowMatrix);
   SetShaderMatrix('shadowMatrix', ShadowMatrix);
   MatrixMode(true);
@@ -78,7 +78,7 @@ begin
   glCullFace(GL_BACK);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glViewport(0, 0, m_viewport.Width, m_viewport.Height);
+  glViewport(0, 0, m_viewport.Right, m_viewport.Bottom);
   if Form1.Image1.Visible then begin
     bmp := TBitmap.Create;
     with bmp do try

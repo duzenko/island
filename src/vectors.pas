@@ -4,7 +4,6 @@ interface uses
   Windows, dglOpenGl;
 
 type
-//  PVector = ^TVector;
   TVector = record
     class operator Implicit(const a: TGLVectorf3): TVector;
     class operator Implicit(const a: TVector): TGLVectorf3;
@@ -60,6 +59,8 @@ type
       (v: array[0..3] of TVector);
     2:
       (M: array[0..3, 0..3] of Single);
+    3:
+      (v16: array[0..15] of Single);
   end;
   PMatrix = ^TMatrix;
 
@@ -471,7 +472,7 @@ end;
 procedure TMatrix.Rotate(angle, x, y, z: GLfloat);
 var
   rm: TMatrix;
-  s, c: Single;
+  s, c: Extended;
 begin
   SinCos(angle/180*Pi, s, c);
   rm := IdentityMatrix;

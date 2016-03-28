@@ -1,7 +1,7 @@
 unit shaders;
 
 interface uses
-  SysUtils, Classes, dglOpengl, Dialogs, Vectors, Generics.Collections, Forms;
+  SysUtils, Classes, dglOpengl, Dialogs, Vectors, Forms, Contnrs;
 
 function LoadGpuProgram(const Name: string): TGLUInt;
 
@@ -29,8 +29,11 @@ var
 implementation
 
 type
-  TMatrixStack = class(TStack<PMatrix>)
+  TMatrixStack = class(TStack)
+  private
+  public
     destructor Destroy; override;
+    function Peek: PMatrix;
   end;
 
 var
@@ -185,7 +188,7 @@ begin
   if MatrixStack.Count > 0 then
     M^ := MatrixStack.Peek^;
   MatrixStack.Push(M);
-  UpdateShaderMatrix;
+//  UpdateShaderMatrix;
 end;
 
 procedure glPopMatrix;
@@ -327,6 +330,11 @@ begin
   while Count > 0 do
     Dispose(Pop);
   inherited;
+end;
+
+function TMatrixStack.Peek: PMatrix;
+begin
+  Result := inherited Peek;
 end;
 
 initialization
